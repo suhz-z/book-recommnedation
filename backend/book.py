@@ -7,7 +7,7 @@ from difflib import get_close_matches
 import sys
 import os
 
-JSON_PATH = "Book.json"  # change if your file has a different name/path
+JSON_PATH = "data/Book.json"  # change if your file has a different name/path
 
 def load_data(path):
     if not os.path.exists(path):
