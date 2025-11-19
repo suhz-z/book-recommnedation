@@ -24,11 +24,11 @@ export function SimilarBooksGrid({ books, onBookClick, allBooks }: SimilarBooksG
     <Card>
       <CardHeader>
         <CardTitle className="text-2xl flex items-center gap-2">
-          📖 Recommended Similar Books
+           Recommended Similar Books
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
           {books.map((book) => (
             <BookCard
               key={book.id}
@@ -48,13 +48,13 @@ function BookCard({ book, onClick }: { book: SimilarBook; onClick: () => void })
       className="group cursor-pointer"
       onClick={onClick}
     >
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 h-full">
-        <div className="relative aspect-[2/3] bg-muted">
+      <Card className=" hover:shadow-xl h-full pb-3  transition-shadow">
+        <div className="relative aspect-2/3 bg-muted">
           <Image
             src={book.cover_image_url}
             alt={book.title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            className="object-cover transition-transform duration-300"
             sizes="(max-width: 768px) 50vw, 16vw"
           />
         </div>

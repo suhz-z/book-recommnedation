@@ -158,7 +158,7 @@ export function SearchBar({
           </div>
 
           <p className="text-sm text-muted-foreground mt-3 flex items-center gap-2">
-            <span className="hidden sm:inline">💡 Press</span>
+            <span className="hidden sm:inline"> Press</span>
             <kbd className="px-2 py-1 text-xs font-semibold bg-muted rounded border">Enter</kbd>
             <span className="hidden sm:inline">to select first result or</span>
             <kbd className="px-2 py-1 text-xs font-semibold bg-muted rounded border hidden sm:inline">/</kbd>

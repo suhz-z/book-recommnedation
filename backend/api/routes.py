@@ -1,7 +1,7 @@
 """API endpoint definitions."""
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import parse_obj_as
+from pydantic import TypeAdapter
 
 from models import Book, SimilarBook
 from books import BookService
@@ -12,6 +12,10 @@ book_service: BookService = None
 embedding_service: EmbeddingService = None
 
 router = APIRouter()
+
+# TypeAdapters 
+book_list_adapter = TypeAdapter(List[Book])
+similar_book_list_adapter = TypeAdapter(List[SimilarBook])
 
 
 @router.get("/", tags=["Root"])
@@ -49,7 +53,7 @@ async def get_books(
         "total": total,
         "page": page,
         "page_size": page_size,
-        "books": parse_obj_as(List[Book], page_df.to_dict('records'))
+        "books": book_list_adapter.validate_python(page_df.to_dict('records'))
     }
 
 
@@ -92,7 +96,7 @@ async def get_similar_books(
                 "similarity_score": score
             })
     
-    return results
+    return similar_book_list_adapter.validate_python(results)
 
 
 @router.get("/api/books/search/", tags=["Search"])
@@ -109,7 +113,7 @@ async def search_books(
         "total": total,
         "page": page,
         "page_size": page_size,
-        "books": parse_obj_as(List[Book], page_df.to_dict('records'))
+        "books": book_list_adapter.validate_python(page_df.to_dict('records'))
     }
 
 
@@ -117,7 +121,7 @@ async def search_books(
 async def get_top_rated(limit: int = Query(20, ge=1, le=100)):
     """Get top rated books."""
     books = book_service.get_top_rated(limit)
-    return parse_obj_as(List[Book], books.to_dict('records'))
+    return book_list_adapter.validate_python(books.to_dict('records'))
 
 
 @router.get("/api/genres", tags=["Metadata"])
