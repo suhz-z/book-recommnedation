@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'covers.openlibrary.org',
+        hostname: 'images-na.ssl-images-amazon.com',
         pathname: '/**',
       },
     ],

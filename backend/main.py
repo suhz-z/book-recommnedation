@@ -14,7 +14,7 @@ from pydantic import parse_obj_as
 
 APP_ORIGIN = os.getenv("APP_ORIGIN", "http://localhost:3000")
 DATA_DIR = os.getenv("DATA_DIR", "data")
-BOOKS_CSV = os.path.join(DATA_DIR, "book_novels_dataset_500_latest.csv")
+BOOKS_CSV = os.path.join(DATA_DIR, "books_dataset_100.csv")
 
 app = FastAPI(title="Book Recommendation API", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=[APP_ORIGIN], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
@@ -75,7 +75,7 @@ df['combined_features'] = df[_text_cols].fillna('').agg(' '.join, axis=1)
 tfidf = TfidfVectorizer(stop_words='english', max_features=5000)
 _tf = tfidf.fit_transform(df['combined_features'])
 
-# --- Helpers ---
+
 def paginate(df_, page: int, page_size: int):
     total = len(df_)
     start = (page - 1) * page_size
@@ -107,7 +107,7 @@ def calc_similarity(book_id: int, top_n: int = 10):
         for i, row in zip(chosen, df.iloc[chosen].to_dict('records'))
     ]
 
-# --- Routes (behavior preserved) ---
+#Routes--
 @app.get("/", tags=["Root"]) 
 async def root():
     return {
