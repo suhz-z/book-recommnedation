@@ -8,8 +8,8 @@ from config import (
     EMBEDDINGS_PATH, IDS_PATH
 )
 from books import BookService
-from embed import EmbeddingService
-from api import routes
+from app.embed import EmbeddingService
+from app.api import routes
 
 
 @asynccontextmanager

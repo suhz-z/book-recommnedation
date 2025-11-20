@@ -1,7 +1,7 @@
 """Book data operations."""
 import pandas as pd
 from typing import Optional
-from config import BOOKS_CSV, TEXT_COLUMNS
+from app.config import BOOKS_CSV, TEXT_COLUMNS
 
 
 class BookService:

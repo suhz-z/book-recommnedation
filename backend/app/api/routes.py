@@ -4,8 +4,8 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import TypeAdapter
 
 from models import Book, SimilarBook
-from books import BookService
-from embed import EmbeddingService
+from app.books import BookService
+from app.embed import EmbeddingService
 
 
 book_service: BookService = None
