@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import TypeAdapter
 
-from models import Book, SimilarBook
+from app.models import Book, SimilarBook
 from app.books import BookService
 from app.embed import EmbeddingService
 
