@@ -1,111 +1,36 @@
-import { Book, BooksResponse, SimilarBook, Genre } from '@/types/book';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-interface GetBooksParams {
-  page?: number;
-  page_size?: number;
-  genre?: string;
-  language?: string;
-  min_rating?: number;
-}
-
-export async function getBooks(params: GetBooksParams = {}): Promise<BooksResponse> {
-  const searchParams = new URLSearchParams();
-
-  if (params.page) searchParams.append('page', params.page.toString());
-  if (params.page_size) searchParams.append('page_size', params.page_size.toString());
-  if (params.genre) searchParams.append('genre', params.genre);
-  if (params.language) searchParams.append('language', params.language);
-  if (params.min_rating) searchParams.append('min_rating', params.min_rating.toString());
-
-  const response = await fetch(`${API_BASE_URL}/api/books?${searchParams}`, {
-    next: { revalidate: 3600 }, // Cache for 1 hour
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch books');
-  }
-
-  return response.json();
-}
-
-export async function getBookDetails(bookId: number): Promise<Book> {
-  const response = await fetch(`${API_BASE_URL}/api/books/${bookId}`, {
-    next: { revalidate: 3600 },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch book details');
-  }
-
-  return response.json();
-}
-
-export async function getSimilarBooks(bookId: number, limit: number = 6): Promise<SimilarBook[]> {
-  const response = await fetch(
-    `${API_BASE_URL}/api/books/${bookId}/similar?limit=${limit}`,
-    {
-      next: { revalidate: 3600 },
+export const bookService = {
+  /**
+   * Fetches all books with pagination
+   * @param page - Page number
+   * @param pageSize - Number of books per page
+   */
+  async fetchAllBooks(page = 1, pageSize = 500) {
+    try {
+      const response = await fetch(`${API_URL}/api/books?page=${page}&page_size=${pageSize}`);
+      if (!response.ok) throw new Error('Failed to fetch books');
+      const data = await response.json();
+      return data.books;
+    } catch (error) {
+      console.error('Error fetching books:', error);
+      throw error;
     }
-  );
+  },
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch similar books');
+  /**
+   * Fetches similar books based on a given book ID
+   * @param bookId - The ID of the book to find similar books for
+   * @param limit - Maximum number of similar books to return
+   */
+  async fetchSimilarBooks(bookId: number, limit = 12) {
+    try {
+      const response = await fetch(`${API_URL}/api/books/${bookId}/similar?limit=${limit}`);
+      if (!response.ok) throw new Error('Failed to fetch similar books');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching similar books:', error);
+      throw error;
+    }
   }
-
-  return response.json();
-}
-
-export async function searchBooks(query: string, page: number = 1): Promise<BooksResponse> {
-  const searchParams = new URLSearchParams({
-    q: query,
-    page: page.toString(),
-  });
-
-  const response = await fetch(`${API_BASE_URL}/api/books/search/?${searchParams}`, {
-    cache: 'no-store', // Don't cache search results
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to search books');
-  }
-
-  return response.json();
-}
-
-export async function getTopRatedBooks(limit: number = 20): Promise<Book[]> {
-  const response = await fetch(`${API_BASE_URL}/api/books/top-rated?limit=${limit}`, {
-    next: { revalidate: 3600 },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch top rated books');
-  }
-
-  return response.json();
-}
-
-export async function getGenres(): Promise<{ genres: Genre[] }> {
-  const response = await fetch(`${API_BASE_URL}/api/genres`, {
-    next: { revalidate: 3600 },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch genres');
-  }
-
-  return response.json();
-}
-
-export async function getStats() {
-  const response = await fetch(`${API_BASE_URL}/api/stats`, {
-    next: { revalidate: 3600 },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch stats');
-  }
-
-  return response.json();
-}
+};
