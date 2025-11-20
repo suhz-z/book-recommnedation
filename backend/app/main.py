@@ -3,11 +3,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config import (
+from app.config import (
     APP_ORIGIN, MODEL_NAME, FAISS_INDEX_PATH, 
     EMBEDDINGS_PATH, IDS_PATH
 )
-from books import BookService
+from app.books import BookService
 from app.embed import EmbeddingService
 from app.api import routes
 
