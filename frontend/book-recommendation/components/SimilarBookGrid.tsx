@@ -48,13 +48,13 @@ function BookCard({ book, onClick }: { book: SimilarBook; onClick: () => void })
       className="group cursor-pointer"
       onClick={onClick}
     >
-      <Card className=" hover:shadow-xl h-full pb-3  transition-shadow">
+      <Card className="hover:shadow-xl h-full pb-3 transition-shadow">
         <div className="relative aspect-2/3 bg-muted">
           <Image
             src={book.cover_image_url}
             alt={book.title}
             fill
-            className="object-cover transition-transform duration-300"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 768px) 50vw, 16vw"
           />
         </div>
@@ -65,7 +65,12 @@ function BookCard({ book, onClick }: { book: SimilarBook; onClick: () => void })
           </h3>
           <p className="text-xs text-muted-foreground line-clamp-1">{book.author}</p>
           
-          <div className="flex items-center justify-between gap-2">
+          {/* Genre Badge added here */}
+          <Badge variant="outline" className="px-2 py-0.5 text-xs">
+            {book.genre}
+          </Badge>
+          
+          <div className="flex items-center justify-between gap-2 mt-1">
             <Badge variant="secondary" className="px-2 py-0.5 text-xs flex items-center gap-1">
               <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
               {book.rating.toFixed(1)}
@@ -81,3 +86,4 @@ function BookCard({ book, onClick }: { book: SimilarBook; onClick: () => void })
     </div>
   );
 }
+

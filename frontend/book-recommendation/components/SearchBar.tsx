@@ -1,12 +1,12 @@
 "use client";
 
 import { Book } from '@/types/book';
-import Image from 'next/image';
+
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, X, BookOpen } from 'lucide-react';
+
+import { Search, X } from 'lucide-react';
 import { useRef, useEffect, useState } from 'react';
 
 interface SearchBarProps {
@@ -180,79 +180,56 @@ function SearchDropdown({ books, onSelect, searchQuery }: SearchDropdownProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedIndex(prev => (prev < books.length - 1 ? prev + 1 : prev));
+        setSelectedIndex(i => (i < books.length - 1 ? i + 1 : i));
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+        setSelectedIndex(i => (i > 0 ? i - 1 : i));
       } else if (e.key === 'Enter' && books[selectedIndex]) {
         e.preventDefault();
         onSelect(books[selectedIndex]);
       }
     };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [books, selectedIndex, onSelect]);
 
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [searchQuery]);
+  useEffect(() => setSelectedIndex(0), [searchQuery]);
 
   return (
-    <Card 
-      className="absolute z-50 w-full mt-2 shadow-2xl border-2 animate-in fade-in slide-in-from-top-2 duration-200"
-      id="search-results"
+    <div
       role="listbox"
+      className="absolute z-50 w-full mt-2 shadow-lg border rounded-md max-h-96 overflow-auto bg-white"
     >
-      <ScrollArea className="max-h-[400px]">
-        <div className="divide-y">
-          {books.map((book, index) => (
-            <button
-              key={book.id}
-              onClick={() => onSelect(book)}
-              className={`w-full px-4 py-3 text-left flex items-center gap-4 transition-all duration-150 focus:outline-none ${
-                index === selectedIndex
-                  ? 'bg-accent/80 border-l-4 border-primary'
-                  : 'hover:bg-accent/50 border-l-4 border-transparent'
-              }`}
-              role="option"
-              aria-selected={index === selectedIndex}
-            >
-              <div className="relative w-12 h-16 flex-shrink-0 rounded overflow-hidden shadow-sm">
-                <Image
-                  src={book.cover_image_url}
-                  alt={`Cover of ${book.title}`}
-                  fill
-                  className="object-cover"
-                  sizes="48px"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-gray-900 truncate text-sm sm:text-base">
-                  {highlightMatch(book.title, searchQuery)}
-                </div>
-                <div className="text-xs sm:text-sm text-muted-foreground truncate">
-                  {highlightMatch(book.author, searchQuery)}
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {book.genre} • {book.pub_year}
-                </div>
-              </div>
-              <BookOpen className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-            </button>
-          ))}
-        </div>
-      </ScrollArea>
-      <div className="px-4 py-2 bg-muted/30 border-t text-xs text-muted-foreground flex items-center justify-between">
+      {books.map((book, idx) => {
+        const isSelected = idx === selectedIndex;
+        return (
+          <button
+            key={book.id}
+            role="option"
+            aria-selected={isSelected}
+            onClick={() => onSelect(book)}
+            className={`w-full text-left p-3 ${
+              isSelected ? 'bg-blue-500 text-white' : 'hover:bg-blue-100'
+            }`}
+          >
+            <div className="font-semibold truncate">{highlightMatch(book.title, searchQuery)}</div>
+            <div className="text-sm text-gray-600 truncate">{highlightMatch(book.author, searchQuery)}</div>
+            <div className="text-xs text-gray-500">{book.pub_year}</div>
+          </button>
+        );
+      })}
+      <div className="p-2 text-xs flex justify-between text-gray-400 border-t">
         <span>Use ↑↓ to navigate</span>
-        <span>{books.length} results</span>
+        <span>{books.length} {books.length === 1 ? 'result' : 'results'}</span>
       </div>
-    </Card>
+    </div>
   );
 }
+
+
 
 function highlightMatch(text: string, query: string): React.ReactNode {
   if (!query.trim()) return text;

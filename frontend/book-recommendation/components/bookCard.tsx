@@ -33,7 +33,7 @@ export function SelectedBookCard({ book }: SelectedBookCardProps) {
 
 function BookCover({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="flex-shrink-0">
+    <div className="shrink-0">
       <div className="relative w-48 h-72 rounded-lg overflow-hidden shadow-md">
         <Image
           src={src}

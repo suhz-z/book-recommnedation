@@ -7,7 +7,7 @@ from difflib import get_close_matches
 import sys
 import os
 
-JSON_PATH = "data/Book.json"  # change if your file has a different name/path
+JSON_PATH = "data/Book.json" 
 
 def load_data(path):
     if not os.path.exists(path):
@@ -27,12 +27,13 @@ def prepare_text(df):
         fallback_cols = [c for c in ['genre_1', 'genre_2', 'writer', 'name'] if c in df.columns]
         df['description_fallback'] = df[fallback_cols].fillna('').astype(str).agg(' - '.join, axis=1)
         text_col = 'description_fallback'
-
-    # fillna, ensure strings
+    #clean
     df[text_col] = df[text_col].fillna('').astype(str)
-    # simple cleaning (lowercase + collapse whitespace)
     df['_text_clean'] = df[text_col].str.lower().str.replace(r'\s+', ' ', regex=True).str.strip()
     return df, text_col
+
+
+#tfd
 
 def build_tfidf(df):
     vectorizer = TfidfVectorizer(stop_words="english", min_df=1, max_df=0.9, ngram_range=(1,2))

@@ -19,6 +19,7 @@ export default function Home() {
     showDropdown,
     selectBook,
     reset,
+    handleSearch
   } = useBookSearch();
 
   return (
@@ -30,6 +31,7 @@ export default function Home() {
         filteredBooks={filteredBooks}
         showDropdown={showDropdown}
         onBookSelect={selectBook}
+        onSearch={handleSearch}
       />
 
       {selectedBook && (
