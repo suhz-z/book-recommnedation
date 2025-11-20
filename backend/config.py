@@ -18,7 +18,7 @@ IDS_PATH = INDEX_DIR / "ids.npy"
 MODEL_NAME = os.getenv("EMBED_MODEL", "all-MiniLM-L6-v2")
 
 # CORS
-APP_ORIGIN = os.getenv("APP_ORIGIN", "http://localhost:3000")
+APP_ORIGIN = os.getenv("APP_ORIGIN", "http://bookz-delta.vercel.app")
 
 # Text columns for embeddings
 TEXT_COLUMNS = ['genre', 'subgenre', 'keywords', 'author', 'description']
