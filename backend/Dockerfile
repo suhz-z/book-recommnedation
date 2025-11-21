@@ -3,11 +3,6 @@ FROM python:3.11
 WORKDIR /app
 
 # Install system dependencies (including libpq-dev for PostgreSQL)
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
 
 # Install CPU-only PyTorch first (reduces image size)
 RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
