@@ -11,11 +11,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./app ./app
 COPY ./data ./data
+COPY entrypoint.sh .
 
-RUN mkdir -p /app/index_data
+RUN mkdir -p /app/index_data && chmod +x entrypoint.sh
 
 EXPOSE 8000
 
-# Explicitly use shell to expand $PORT
-ENTRYPOINT ["/bin/sh", "-c"]
-CMD ["uvicorn app.main:app --host 0.0.0.0 --port $PORT"]
+ENTRYPOINT ["./entrypoint.sh"]
