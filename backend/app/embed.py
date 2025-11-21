@@ -1,4 +1,3 @@
-"""Embedding service for FAISS similarity search."""
 import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
@@ -6,7 +5,6 @@ from pathlib import Path
 from typing import List, Tuple, Optional
 
 class EmbeddingService:
-    """Service for generating embeddings and FAISS similarity search."""
     
     def __init__(self, model_name: str):
         self.model = SentenceTransformer(model_name)
@@ -16,13 +14,11 @@ class EmbeddingService:
     
     @staticmethod
     def normalize(vectors: np.ndarray) -> np.ndarray:
-        """L2 normalize vectors for cosine similarity."""
         norms = np.linalg.norm(vectors, axis=1, keepdims=True)
         norms[norms == 0] = 1.0
         return vectors / norms
     
     def build_index(self, texts: List[str], ids: np.ndarray, save_path: Path) -> None:
-        """Generate embeddings and build FAISS index."""
         print(f"Building FAISS index for {len(texts)} items...")
         
         # Generate embeddings
@@ -42,7 +38,6 @@ class EmbeddingService:
         self.index = faiss.IndexFlatIP(dim)
         self.index.add(self.embeddings)
         
-        # Save
         self._save(save_path)
         print(f"FAISS index built and saved to {save_path}")
     
@@ -52,7 +47,6 @@ class EmbeddingService:
         embeddings_path: Path,
         ids_path: Path
     ) -> bool:
-        """Load persisted FAISS index."""
         if not all(p.exists() for p in [index_path, embeddings_path, ids_path]):
             return False
         
@@ -64,7 +58,9 @@ class EmbeddingService:
         return True
     
     def search_similar(self, book_id: int, top_k: int = 10) -> List[Tuple[int, float]]:
+        
         """Find similar items using FAISS."""
+        
         if self.index is None or self.embeddings is None or self.ids is None:
             return []
         

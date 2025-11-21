@@ -1,8 +1,7 @@
-"""Load CSV data into PostgreSQL database."""
 import sys
 from pathlib import Path
 
-# Add parent directory to path
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pandas as pd
@@ -12,19 +11,16 @@ from app.models import Book
 from app.db.session import engine, create_db_and_tables
 
 def load_data():
-    """Load books from CSV into database."""
     print("Loading data from CSV...")
     
-    # Create tables
     create_db_and_tables()
-    print("✓ Tables created")
+    print(" Tables created")
     
-    # Read CSV
     csv_path = Path(__file__).parent.parent / 'data' / 'books_dataset_100.csv'
     df = pd.read_csv(csv_path)
-    print(f"✓ Read {len(df)} books from CSV")
+    print(f" Read {len(df)} books from CSV")
     
-    # Clean data - replace NaN with appropriate values
+    # replace NaN with appropriate values
     df['series'] = df['series'].replace({np.nan: None})
     df['series_number'] = df['series_number'].fillna(0).astype(int)
     df['awards'] = df['awards'].replace({np.nan: None})
@@ -35,9 +31,8 @@ def load_data():
     for field in string_fields:
         df[field] = df[field].fillna('')
     
-    print("✓ Data cleaned")
+    print(" Data cleaned")
     
-    # Insert into database
     print("Inserting books into database...")
     with Session(engine) as session:
         for idx, row in df.iterrows():
@@ -53,7 +48,7 @@ def load_data():
         # Commit any remaining
         session.commit()
     
-    print(f"✓ Successfully loaded {len(df)} books into database")
+    print(f" Successfully loaded {len(df)} books into database")
 
 if __name__ == "__main__":
     load_data()

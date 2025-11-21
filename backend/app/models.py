@@ -1,10 +1,8 @@
-"""Database models using SQLModel."""
 from sqlmodel import SQLModel, Field
 from typing import Optional
 from pydantic import BaseModel
 
 class Book(SQLModel, table=True):
-    """Book database model."""
     __tablename__ = "books"
     
     id: int = Field(primary_key=True)
@@ -28,7 +26,6 @@ class Book(SQLModel, table=True):
 
 
 class SimilarBook(BaseModel):
-    """Response model for similar books."""
     id: int
     title: str
     author: str
