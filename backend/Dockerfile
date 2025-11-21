@@ -16,6 +16,3 @@ COPY ./data ./data
 RUN mkdir -p /app/index_data
 
 EXPOSE 8000
-
-
-ENTRYPOINT ["./entrypoint.sh"]
