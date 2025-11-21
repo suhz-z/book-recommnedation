@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     
     # CORS
-    APP_ORIGIN: str = "http://localhost:3000"
+    APP_ORIGIN: str = "https://bookz-delta.vercel.app"
     
     # Model
     MODEL_NAME: str = "all-MiniLM-L6-v2"
