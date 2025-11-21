@@ -1,91 +1,56 @@
-"""Book data operations."""
-import pandas as pd
-from typing import Optional
-from app.config import BOOKS_CSV, TEXT_COLUMNS
-
+"""Book service for database operations."""
+from sqlmodel import select
+from typing import Optional, List
+from app.db.session import get_session
+from app.models import Book
 
 class BookService:
+    """Service for book-related database operations."""
     
-    def __init__(self):
-        self.df = self._load_data()
-    
-    def _load_data(self) -> pd.DataFrame:
-        df = pd.read_csv(BOOKS_CSV)
-        
-        df['isbn'] = df.get('isbn', '').astype(str)
-        df['series_number'] = df.get('series_number', 0).fillna(0).astype(int)
-        df['series'] = df.get('series', '').fillna('')
-        df['awards'] = df.get('awards', '').fillna('')
-        
-        for col in TEXT_COLUMNS:
-            df[col] = df.get(col, '').fillna('')
-        
-        df['combined_features'] = df[TEXT_COLUMNS].agg(' '.join, axis=1)
-        
-        return df
-    
-    def get_by_id(self, book_id: int) -> Optional[dict]:
-        result = self.df.loc[self.df['id'] == book_id]
-        return result.iloc[0].to_dict() if not result.empty else None
+    def get_by_id(self, book_id: int) -> Optional[Book]:
+        """Get book by ID."""
+        with next(get_session()) as session:
+            return session.get(Book, book_id)
     
     def get_all(
-        self, 
+        self,
         genre: Optional[str] = None,
         language: Optional[str] = None,
         min_rating: Optional[float] = None
-    ) -> pd.DataFrame:
-        filtered = self.df.copy()
-        
-        if genre:
-            filtered = filtered[filtered['genre'].str.lower() == genre.lower()]
-        if language:
-            filtered = filtered[filtered['language'].str.lower() == language.lower()]
-        if min_rating is not None:
-            filtered = filtered[filtered['rating'] >= min_rating]
-        
-        return filtered
+    ) -> List[Book]:
+        """Get all books with optional filters."""
+        with next(get_session()) as session:
+            stmt = select(Book)
+            
+            if genre:
+                stmt = stmt.where(Book.genre.ilike(f"%{genre}%"))
+            if language:
+                stmt = stmt.where(Book.language.ilike(f"%{language}%"))
+            if min_rating is not None:
+                stmt = stmt.where(Book.rating >= min_rating)
+            
+            return list(session.exec(stmt).all())
     
-    def search(self, query: str) -> pd.DataFrame:
-        q = query.lower()
-        mask = (
-            self.df['title'].str.lower().str.contains(q, na=False) |
-            self.df['author'].str.lower().str.contains(q, na=False) |
-            self.df['keywords'].str.lower().str.contains(q, na=False) |
-            self.df['description'].str.lower().str.contains(q, na=False)
-        )
-        return self.df[mask]
+    def search(self, query: str) -> List[Book]:
+        """Search books by title, author, keywords, or description."""
+        with next(get_session()) as session:
+            q = f"%{query.lower()}%"
+            stmt = select(Book).where(
+                (Book.title.ilike(q)) |
+                (Book.author.ilike(q)) |
+                (Book.keywords.ilike(q)) |
+                (Book.description.ilike(q))
+            )
+            return list(session.exec(stmt).all())
     
-    def get_top_rated(self, limit: int = 20) -> pd.DataFrame:
-        return self.df.nlargest(limit, 'rating')
+    def get_top_rated(self, limit: int = 20) -> List[Book]:
+        """Get top rated books."""
+        with next(get_session()) as session:
+            stmt = select(Book).order_by(Book.rating.desc()).limit(limit)
+            return list(session.exec(stmt).all())
     
-    def get_genres(self) -> list:
-        counts = self.df['genre'].value_counts()
-        return [{"name": name, "count": int(count)} for name, count in counts.items()]
-    
-    def get_authors(self) -> pd.DataFrame:
-        return (self.df.groupby('author')
-                .agg({'id': 'count', 'author_nationality': 'first'})
-                .rename(columns={'id': 'book_count', 'author_nationality': 'nationality'})
-                .reset_index()
-                .rename(columns={'author': 'name'})
-                .sort_values('book_count', ascending=False))
-    
-    def get_stats(self) -> dict:
-        return {
-            "total_books": len(self.df),
-            "total_authors": int(self.df['author'].nunique()),
-            "total_genres": int(self.df['genre'].nunique()),
-            "languages": self.df['language'].value_counts().to_dict(),
-            "average_rating": float(self.df['rating'].mean()),
-            "average_pages": int(self.df['pages'].mean()),
-            "year_range": {
-                "oldest": int(self.df['pub_year'].min()), 
-                "newest": int(self.df['pub_year'].max())
-            }
-        }
-    
-    @staticmethod
-    def paginate(df: pd.DataFrame, page: int, page_size: int) -> tuple:
-        total = len(df)
-        start = (page - 1) * page_size
-        return total, df.iloc[start:start + page_size]
+    def get_all_for_embeddings(self) -> List[Book]:
+        """Get all books for embedding generation."""
+        with next(get_session()) as session:
+            stmt = select(Book)
+            return list(session.exec(stmt).all())
