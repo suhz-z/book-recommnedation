@@ -3,6 +3,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BookOpen } from 'lucide-react';
+import { WeatherWidget } from './WeatherW';
 
 export function LoadingState() {
   return (
@@ -41,19 +42,9 @@ export function EmptyState() {
   return (
     <Card>
       <CardContent className="py-16">
-        <div className="text-center space-y-4">
-          <div className="flex justify-center">
-            <div className="rounded-full bg-muted p-6">
-              <BookOpen className="w-16 h-16 text-muted-foreground" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-xl font-semibold text-gray-700">
-              Start by searching for a book
-            </h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Type in the search box above to find a book and get personalized recommendations 
-            </p>
+        <div className=" space-y-4">
+          <div className="flex text-center">
+            <WeatherWidget />
           </div>
         </div>
       </CardContent>

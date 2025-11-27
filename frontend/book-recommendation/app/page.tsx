@@ -24,22 +24,22 @@ export default function Home() {
 
   return (
     <PageLayout>
-      <SearchBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onReset={reset}
-        filteredBooks={filteredBooks}
-        showDropdown={showDropdown}
-        onBookSelect={selectBook}
-        onSearch={handleSearch}
-      />
+      <div className="max-w-4xl mx-auto space-y-6">
+        <SearchBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onReset={reset}
+          filteredBooks={filteredBooks}
+          showDropdown={showDropdown}
+          onBookSelect={selectBook}
+          onSearch={handleSearch}
+        />
 
-      {selectedBook && (
-        <SelectedBookCard book={selectedBook} />
-      )}
+        
+      </div>
 
+      {selectedBook && <SelectedBookCard book={selectedBook} />}
       {loading && <LoadingState />}
-
       {!loading && similarBooks.length > 0 && (
         <SimilarBooksGrid
           books={similarBooks}
@@ -47,8 +47,8 @@ export default function Home() {
           allBooks={books}
         />
       )}
-
       {!selectedBook && !loading && <EmptyState />}
     </PageLayout>
   );
 }
+
