@@ -3,7 +3,7 @@
 import { useBookSearch } from '@/hooks/useBookSearch';
 import { PageLayout } from '@/components/Layout';
 import { SearchBar } from '@/components/SearchBar';
-import { SelectedBookCard } from '@/components/BookCard';
+import { SelectedBookCard } from '@/components/bookCard';
 import { SimilarBooksGrid } from '@/components/SimilarBookGrid';
 import { LoadingState, EmptyState } from '@/components/UIStates';
 
