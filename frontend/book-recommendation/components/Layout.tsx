@@ -3,6 +3,7 @@
 import { ReactNode } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { BookMarked } from 'lucide-react';
+import { WeatherWidget } from './WeatherW';
 
 export function PageLayout({ children }: { children: ReactNode }) {
   return (
@@ -25,11 +26,12 @@ function Header() {
             Book Recommendation System
           </h1>
         </div>
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex-col items-center justify-center md:flex md:justify-between gap-4">
           
           <p className="text-center text-neutral-700">
             Find similar books
           </p>
+          <div> <WeatherWidget /></div>
         </div>
       </div>
     </header>
