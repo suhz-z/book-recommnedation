@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from 'react';
 import { useBookSearch } from '@/hooks/useBookSearch';
 import { PageLayout } from '@/components/Layout';
 import { SearchBar } from '@/components/SearchBar';
@@ -7,7 +8,7 @@ import { SelectedBookCard } from '@/components/bookCard';
 import { SimilarBooksGrid } from '@/components/SimilarBookGrid';
 import { LoadingState, EmptyState } from '@/components/UIStates';
 
-export default function Home() {
+function HomeContent() {
   const {
     books,
     searchQuery,
@@ -50,5 +51,13 @@ export default function Home() {
 
       {!selectedBook && !loading && <EmptyState />}
     </PageLayout>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <HomeContent />
+    </Suspense>
   );
 }
