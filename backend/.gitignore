@@ -9,3 +9,4 @@ env/
 index_data/
 logs/
 .DS_Store
+.env.local
