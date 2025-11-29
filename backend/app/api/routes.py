@@ -7,6 +7,7 @@ from app.books import BookService
 from app.embed import EmbeddingService
 import httpx
 import os
+from datetime import datetime, timedelta
 
 router = APIRouter()
 
@@ -17,6 +18,33 @@ embedding_service: Optional[EmbeddingService] = None
 # Type adapters
 book_list_adapter = TypeAdapter(List[Book])
 similar_book_list_adapter = TypeAdapter(List[SimilarBook])
+
+#cache
+weather_cache = {}
+CACHE_DURATION = timedelta(minutes=10)  # Cache for 10 minutes
+
+def get_cache_key(lat: float, lon: float) -> str:
+    """Generate cache key for coordinates (rounded to 2 decimals)."""
+    return f"{round(lat, 2)}_{round(lon, 2)}"
+
+def get_cached_weather(lat: float, lon: float):
+    """Get weather from cache if available and not expired."""
+    cache_key = get_cache_key(lat, lon)
+    
+    if cache_key in weather_cache:
+        cached_data, cached_time = weather_cache[cache_key]
+        if datetime.now() - cached_time < CACHE_DURATION:
+            return cached_data
+        else:
+            # Remove expired cache entry
+            del weather_cache[cache_key]
+    
+    return None
+
+def set_cached_weather(lat: float, lon: float, data: dict):
+    """Store weather data in cache."""
+    cache_key = get_cache_key(lat, lon)
+    weather_cache[cache_key] = (data, datetime.now())
 
 
 @router.get("/", tags=["Root"])
@@ -118,9 +146,16 @@ async def get_weather(
     lat: float = Query(..., description="Latitude", ge=-90, le=90),
     lon: float = Query(..., description="Longitude", ge=-180, le=180)
 ):
-    """Get current weather for given coordinates."""
-    api_key = os.getenv("WEATHER_API_KEY")
+    """Get current weather for given coordinates (with caching)."""
     
+    # Check cache first
+    cached_result = get_cached_weather(lat, lon)
+    if cached_result:
+        return {**cached_result, "cached": True}
+    
+
+    api_key = os.getenv("WEATHER_API_KEY")
+    # If not in cache, fetch from API
     if not api_key:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -142,12 +177,18 @@ async def get_weather(
             response.raise_for_status()
             data = response.json()
             
-            return {
+            result = {
                 "temp": round(data["main"]["temp"]),
                 "description": data["weather"][0]["description"],
                 "icon": data["weather"][0]["icon"],
-                "city": data["name"]
+                "city": data["name"],
+                "cached": False
             }
+            
+            # Store in cache
+            set_cached_weather(lat, lon, result)
+            
+            return result
             
     except httpx.HTTPStatusError as e:
         raise HTTPException(
