@@ -12,7 +12,7 @@ interface CachedWeather {
   lon: number;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 const CACHE_DURATION = 10 * 60 * 1000;
 
 function getCacheKey(lat: number, lon: number): string {

@@ -17,9 +17,7 @@ app.add_middleware(
     allow_origins=[settings.APP_ORIGIN] if settings.ENV == "production" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=600,
+    allow_headers=["*"]
 )
 
 app.include_router(routes.router)
