@@ -5,6 +5,8 @@ from pydantic import TypeAdapter
 from app.models import Book, SimilarBook
 from app.books import BookService
 from app.embed import EmbeddingService
+import httpx
+import os
 
 router = APIRouter()
 
@@ -111,8 +113,58 @@ async def search_books(
     }
 
 
-@router.get("/api/books/top-rated", tags=["Books"])
-async def get_top_rated(limit: int = Query(20, ge=1, le=100)):
-    """Get top rated books."""
-    books = book_service.get_top_rated(limit)
-    return book_list_adapter.validate_python([b.model_dump() for b in books])
+@router.get("/api/weather", tags=["Weather"])
+async def get_weather(
+    lat: float = Query(..., description="Latitude", ge=-90, le=90),
+    lon: float = Query(..., description="Longitude", ge=-180, le=180)
+):
+    """Get current weather for given coordinates."""
+    api_key = os.getenv("WEATHER_API_KEY")
+    
+    if not api_key:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Weather API key not configured"
+        )
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://api.openweathermap.org/data/2.5/weather",
+                params={
+                    "lat": lat,
+                    "lon": lon,
+                    "appid": api_key,
+                    "units": "metric"
+                },
+                timeout=10.0
+            )
+            response.raise_for_status()
+            data = response.json()
+            
+            return {
+                "temp": round(data["main"]["temp"]),
+                "description": data["weather"][0]["description"],
+                "icon": data["weather"][0]["icon"],
+                "city": data["name"]
+            }
+            
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Weather service error: {e.response.status_code}"
+        )
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="Weather service timeout"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch weather: {str(e)}"
+        )
+
+                                
+    
+    

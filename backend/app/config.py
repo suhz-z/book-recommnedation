@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     
     # CORS
     APP_ORIGIN: str = "https://bookz-delta.vercel.app"
+
+    WEATHER_API_KEY : str = None
     
     # Model
     MODEL_NAME: str = "all-MiniLM-L6-v2"
@@ -30,7 +32,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        case_sensitive=True
+        case_sensitive=True,
     )
     
     def __init__(self, **kwargs):
@@ -38,3 +40,5 @@ class Settings(BaseSettings):
         self.INDEX_DIR.mkdir(exist_ok=True)
 
 settings = Settings()
+
+

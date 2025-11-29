@@ -44,6 +44,10 @@ async def lifespan(app: FastAPI):
             print("  No books found in database")
     else:
         print("Loaded existing FAISS index")
+
+    print(f"ENV: {settings.ENV}")
+    print(f"APP_ORIGIN: {settings.APP_ORIGIN}")
+    print(f"WEATHER_API_KEY configured: {bool(settings.WEATHER_API_KEY)}")
     
     print(" Application ready!")
     

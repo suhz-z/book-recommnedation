@@ -10,15 +10,21 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.APP_ORIGIN] if settings.ENV == "production" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
 )
 
 app.include_router(routes.router)
+
+
 
 
 if __name__ == "__main__":
