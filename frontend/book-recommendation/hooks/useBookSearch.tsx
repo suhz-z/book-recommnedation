@@ -1,15 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Book, SimilarBook } from '@/types/book';
-import { bookService } from '@/lib/api';
+import { useAllBooks, useSimilarBooks } from '@/lib/api';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 export function useBookSearch() {
-  const [books, setBooks] = useState<Book[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [similarBooks, setSimilarBooks] = useState<SimilarBook[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
   
   const router = useRouter();
   const pathname = usePathname();
@@ -18,41 +15,37 @@ export function useBookSearch() {
   const bookIdFromUrl = searchParams.get('bookId');
   const searchFromUrl = searchParams.get('search');
 
-  // Load all books first
-  const loadBooks = useCallback(async () => {
-    try {
-      const fetchedBooks = await bookService.fetchAllBooks();
-      setBooks(fetchedBooks);
-    } catch (error) {
-      console.error('Failed to load books:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadBooks();
-  }, [loadBooks]);
+  // Use React Query for fetching books (cached automatically)
+  const { data: books = [], isLoading: booksLoading } = useAllBooks();
+  
+  // Use React Query for similar books (only fetches when selectedBook exists)
+  const { 
+    data: similarBooks = [], 
+    isLoading: similarLoading 
+  } = useSimilarBooks(selectedBook?.id ?? null, 12);
 
   // Initialize from URL after books are loaded
   useEffect(() => {
     if (books.length > 0 && !isInitialized) {
       if (bookIdFromUrl) {
-        const book = books.find(b => b.id === Number (bookIdFromUrl));
+        const book = books.find((b: Book) => b.id === Number(bookIdFromUrl));
         if (book) {
-          selectBookInternal(book);
+          setSelectedBook(book);
+          setSearchQuery(book.title);
         }
       }
-      if (searchFromUrl) {
+      if (searchFromUrl && !bookIdFromUrl) {
         setSearchQuery(searchFromUrl);
       }
       setIsInitialized(true);
     }
-  }, [books, bookIdFromUrl, searchFromUrl, isInitialized,]);
+  }, [books, bookIdFromUrl, searchFromUrl, isInitialized]);
 
-  const filteredBooks = useMemo(() => {
+  const filteredBooks = useMemo((): Book[] => {
     if (!searchQuery.trim()) return [];
     
     return books
-      .filter(book =>
+      .filter((book: Book) =>
         book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         book.author.toLowerCase().includes(searchQuery.toLowerCase())
       )
@@ -61,45 +54,28 @@ export function useBookSearch() {
 
   const showDropdown = filteredBooks.length > 0 && searchQuery.trim() !== '' && !selectedBook;
 
-  // Internal select without URL update (for initialization)
-  const selectBookInternal = useCallback(async (book: Book) => {
-    setSelectedBook(book);
-    setSearchQuery(book.title);
-    setLoading(true);
-
-    try {
-      const similar = await bookService.fetchSimilarBooks(book.id, 12);
-      setSimilarBooks(similar);
-    } catch (error) {
-      console.error('Failed to fetch similar books:', error);
-      setSimilarBooks([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   // Select book and update URL
-  const selectBook = useCallback(async (book: Book) => {
+  const selectBook = useCallback((book: Book): void => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('bookId', String(book.id));
     params.set('search', book.title);
     router.push(`${pathname}?${params.toString()}`);
 
-    await selectBookInternal(book);
-  }, [searchParams, pathname, router, selectBookInternal]);
+    setSelectedBook(book);
+    setSearchQuery(book.title);
+  }, [searchParams, pathname, router]);
 
-  const handleSearch = useCallback(() => {
+  const handleSearch = useCallback((): void => {
     if (filteredBooks.length > 0 && !selectedBook) {
       selectBook(filteredBooks[0]);
     }
   }, [filteredBooks, selectedBook, selectBook]);
 
   // Reset and clear URL params
-  const reset = useCallback(() => {
+  const reset = useCallback((): void => {
     router.push(pathname);
     setSearchQuery('');
     setSelectedBook(null);
-    setSimilarBooks([]);
     setIsInitialized(false);
   }, [pathname, router]);
 
@@ -110,7 +86,7 @@ export function useBookSearch() {
     filteredBooks,
     selectedBook,
     similarBooks,
-    loading,
+    loading: booksLoading || similarLoading,
     showDropdown,
     selectBook,
     handleSearch,
