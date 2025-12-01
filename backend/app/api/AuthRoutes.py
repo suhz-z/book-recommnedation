@@ -7,7 +7,7 @@ from app.db.session import get_session
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, session: Session = Depends(get_session)):
     """Register a new user."""
     # Check if email already exists
