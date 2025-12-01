@@ -3,11 +3,31 @@ from typing import Optional, List
 from app.db.session import get_session
 from app.models import Book
 
+from sqlmodel import select
+from typing import Optional, List
+from app.db.session import get_session
+from app.models import Book
+
+
 class BookService:
     
     def get_by_id(self, book_id: int) -> Optional[Book]:
         with next(get_session()) as session:
             return session.get(Book, book_id)
+    
+    def get_by_ids(self, book_ids: List[int]) -> dict[int, Book]:
+        """Fetch multiple books by IDs in a single query.
+        
+        Returns:
+            Dictionary mapping book_id -> Book for fast lookup
+        """
+        if not book_ids:
+            return {}
+        
+        with next(get_session()) as session:
+            stmt = select(Book).where(Book.id.in_(book_ids))
+            books = session.exec(stmt).all()
+            return {book.id: book for book in books}
     
     def get_all(
         self,
@@ -47,3 +67,4 @@ class BookService:
         with next(get_session()) as session:
             stmt = select(Book)
             return list(session.exec(stmt).all())
+

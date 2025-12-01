@@ -1,6 +1,7 @@
 """Application configuration using pydantic-settings."""
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Optional
 
 class Settings(BaseSettings):
     """Application settings with environment variable support."""
@@ -15,7 +16,7 @@ class Settings(BaseSettings):
     # CORS
     APP_ORIGIN: str = "https://bookz-delta.vercel.app"
 
-    WEATHER_API_KEY : str = None
+    WEATHER_API_KEY: Optional[str] = None
 
     SECRET_KEY: str  # Required, no default
     ALGORITHM: str = "HS256"
@@ -37,6 +38,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
+        extra="ignore"
     )
     
     def __init__(self, **kwargs):

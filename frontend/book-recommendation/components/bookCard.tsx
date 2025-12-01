@@ -39,8 +39,10 @@ function BookCover({ src, alt }: { src: string; alt: string }) {
           src={src}
           alt={alt}
           fill
-          className="object-cover"
-          priority
+          className="object-cover transition-transform duration-300"
+          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+          loading="lazy"
+          quality={85}
         />
       </div>
     </div>

@@ -7,8 +7,8 @@ from app.books import BookService
 from app.embed import EmbeddingService
 from app.api import AuthRoutes as auth
 import httpx
-import os
 from datetime import datetime, timedelta
+from app.config import settings
 
 router = APIRouter()
 
@@ -97,17 +97,24 @@ async def get_similar_books(
     limit: int = Query(12, ge=1, le=50)
 ):
     """Get similar books."""
+    # Check if source book exists
     book = book_service.get_by_id(book_id)
     if not book:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"Book {book_id} not found")
     
+    # Get similar book IDs from FAISS
     similar = embedding_service.search_similar(book_id, limit)
     if not similar:
         return []
     
+    # Extract IDs and fetch all books in ONE query
+    similar_ids = [sim_id for sim_id, _ in similar]
+    books_map = book_service.get_by_ids(similar_ids)  # ✅ Single DB query!
+    
+    # Build results maintaining FAISS order
     results = []
     for sim_id, score in similar:
-        sim_book = book_service.get_by_id(sim_id)
+        sim_book = books_map.get(sim_id)
         if sim_book:
             results.append({
                 "id": sim_book.id,
@@ -121,6 +128,7 @@ async def get_similar_books(
             })
     
     return similar_book_list_adapter.validate_python(results)
+
 
 
 @router.get("/api/books/search/", tags=["Search"])
@@ -157,7 +165,8 @@ async def get_weather(
         return {**cached_result, "cached": True}
     
 
-    api_key = os.getenv("WEATHER_API_KEY")
+    api_key = settings.WEATHER_API_KEY
+    print(f"Using WEATHER_API_KEY of type: {bool(api_key)}")
     # If not in cache, fetch from API
     if not api_key:
         raise HTTPException(
