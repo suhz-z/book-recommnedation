@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     APP_ORIGIN: str = "https://bookz-delta.vercel.app"
 
     WEATHER_API_KEY : str = None
+
+    SECRET_KEY: str  # Required, no default
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
     
     # Model
     MODEL_NAME: str = "all-MiniLM-L6-v2"

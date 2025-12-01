@@ -12,13 +12,24 @@ app = FastAPI(
 
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[settings.APP_ORIGIN] if settings.ENV == "production" else ["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
-)
+if settings.ENV == "development":
+    # Development: Allow all origins
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Allow all origins
+        allow_credentials=True,
+        allow_methods=["*"],  # Allow all methods
+        allow_headers=["*"],  # Allow all headers
+    )
+else:
+    # Production: Restricted origins
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[settings.APP_ORIGIN],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 app.include_router(routes.router)
 

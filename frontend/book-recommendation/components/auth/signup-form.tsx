@@ -17,24 +17,33 @@ export function RegisterForm() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+const onSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError("");
+  setSuccess("");
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
-    }
+  if (password.length < 8) {
+    setError("Password must be at least 8 characters");
+    return;
+  }
+  
+  if (password.length > 72) {
+    setError("Password cannot be longer than 72 characters");
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    setError("Passwords do not match");
+    return;
+  }
+
+
 
     startTransition(async () => {
       try {
-        const res = await fetch("/api/auth/signup", {
+        const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password }),

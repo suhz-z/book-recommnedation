@@ -18,6 +18,8 @@ async def lifespan(app: FastAPI):
     # Create tables
     create_db_and_tables()
     print(" Database tables ready")
+    print(f"SECRET_KEY: {settings.SECRET_KEY}")
+    print(f"Type: {type(settings.SECRET_KEY)}")
     
     # Initialize services
     routes.book_service = BookService()

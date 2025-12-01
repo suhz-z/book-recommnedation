@@ -1,20 +1,22 @@
 from datetime import datetime, timedelta
 from typing import Optional
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlmodel import Session, select
 from app.models import User
-from jose import JWTError, jwt
 from app.db.session import get_session
-import os
+from app.config import settings  # Import settings
 
-# Configuration
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+# Use settings instead of os.getenv
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Verify SECRET_KEY is loaded
+
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 security = HTTPBearer()
 
 
@@ -32,19 +34,22 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create JWT access token."""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now() + expires_delta
+        expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    
+    # Ensure SECRET_KEY is a string
+    encoded_jwt = jwt.encode(to_encode, str(SECRET_KEY), algorithm=ALGORITHM)
     return encoded_jwt
 
 
 def verify_token(token: str) -> Optional[str]:
     """Verify JWT token and return email."""
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # Ensure SECRET_KEY is a string
+        payload = jwt.decode(token, str(SECRET_KEY), algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
             return None
@@ -53,7 +58,7 @@ def verify_token(token: str) -> Optional[str]:
         return None
 
 
-async def get_current_user(
+def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     session: Session = Depends(get_session)
 ) -> User:
