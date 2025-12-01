@@ -31,7 +31,7 @@ function Header() {
           <p className="text-center text-neutral-700">
             Find similar books
           </p>
-          <div> <WeatherWidget /></div>
+          <div className='text-center items-center'> <WeatherWidget /></div>
         </div>
       </div>
     </header>
