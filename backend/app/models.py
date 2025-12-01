@@ -1,6 +1,8 @@
 from sqlmodel import SQLModel, Field
 from typing import Optional
 from pydantic import BaseModel
+import datetime
+from pydantic import EmailStr
 
 class Book(SQLModel, table=True):
     __tablename__ = "books"
@@ -34,3 +36,34 @@ class SimilarBook(BaseModel):
     rating: float
     cover_image_url: str
     similarity_score: float
+
+
+class User(SQLModel, table=True):
+    __tablename__ = "users"
+    
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True)
+    email: str = Field(unique=True, index=True)
+    hashed_password: str
+    is_active: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Request/Response schemas
+class UserCreate(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    is_active: bool

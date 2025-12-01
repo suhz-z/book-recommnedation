@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Book, SimilarBook } from '@/types/book';
+import { Book } from '@/types/book';
 import { useAllBooks, useSimilarBooks } from '@/lib/api';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 

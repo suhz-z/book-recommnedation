@@ -5,6 +5,7 @@ from pydantic import TypeAdapter
 from app.models import Book, SimilarBook
 from app.books import BookService
 from app.embed import EmbeddingService
+from app.api import AuthRoutes as auth
 import httpx
 import os
 from datetime import datetime, timedelta
@@ -18,6 +19,8 @@ embedding_service: Optional[EmbeddingService] = None
 # Type adapters
 book_list_adapter = TypeAdapter(List[Book])
 similar_book_list_adapter = TypeAdapter(List[SimilarBook])
+
+router.include_router(auth.router)
 
 #cache
 weather_cache = {}

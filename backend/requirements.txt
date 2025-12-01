@@ -11,3 +11,6 @@ faiss-cpu
 python-dotenv
 python-multipart
 httpx
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
