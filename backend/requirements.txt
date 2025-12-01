@@ -15,3 +15,4 @@ python-multipart
 sentence-transformers
 sqlmodel
 uvicorn
+argon2_cffi
