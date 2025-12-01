@@ -1,8 +1,8 @@
 from sqlmodel import SQLModel, Field
 from typing import Optional
-from pydantic import BaseModel
-import datetime
-from pydantic import EmailStr
+from pydantic import BaseModel, EmailStr
+from datetime import datetime
+
 
 class Book(SQLModel, table=True):
     __tablename__ = "books"
@@ -46,7 +46,8 @@ class User(SQLModel, table=True):
     email: str = Field(unique=True, index=True)
     hashed_password: str
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=datetime.now)
+    created_at: datetime = Field(default_factory=datetime.now) 
+
 
 # Request/Response schemas
 class UserCreate(BaseModel):
@@ -54,13 +55,16 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
 
 class UserResponse(BaseModel):
     id: int
