@@ -14,33 +14,31 @@ export function LoginForm() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-  
+  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
 
     startTransition(async () => {
       try {
         const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ email, password }),
         });
 
-        const data = await res.json();
-
         if (res.ok) {
           router.push("/");
-          router.refresh();
+          router.refresh(); // Refresh to update user state in layout
         } else {
-          setError(data.error || "Login failed");
+          const data = await res.json();
+          setError(data.detail || "Login failed");
         }
       } catch (err) {
-        setError("Something went wrong");
+        console.error("Login error:", err);
+        setError("Network error. Please try again.");
       }
     });
   };

@@ -1,13 +1,20 @@
 "use client";
 
-import { Book } from '@/types/book';
+import { Book } from "@/types/book";
 
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
-import { Search, X } from 'lucide-react';
-import { useRef, useEffect, useState } from 'react';
+import { Search, X } from "lucide-react";
+import {
+  useRef,
+  useEffect,
+  useState,
+  useId,
+  useCallback,
+  KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 
 interface SearchBarProps {
   searchQuery: string;
@@ -28,54 +35,73 @@ export function SearchBar({
   onBookSelect,
   onSearch,
 }: SearchBarProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const listboxId = useId();
+
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
   useEffect(() => {
     setIsDropdownVisible(showDropdown);
   }, [showDropdown]);
 
+  // Focus with "/" and close with Escape
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === '/' && e.target !== inputRef.current) {
+    const onKey = (e: KeyboardEvent) => {
+      // If focus is already in an input/textarea/contenteditable, skip focusing
+      const active = document.activeElement;
+      const inEditable =
+        active &&
+        (active.tagName === "INPUT" ||
+          active.tagName === "TEXTAREA" ||
+          (active as HTMLElement).isContentEditable);
+
+      if (e.key === "/" && !inEditable) {
         e.preventDefault();
         inputRef.current?.focus();
-      }
-      if (e.key === 'Escape') {
+      } else if (e.key === "Escape") {
         setIsDropdownVisible(false);
+        // also blur input
+        (inputRef.current as HTMLInputElement | null)?.blur();
       }
     };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, []);
 
+  // Click outside using pointerdown (handles touch/pen/mouse consistently)
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+    const onPointer = (e: PointerEvent) => {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(e.target as Node)) {
         setIsDropdownVisible(false);
       }
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("pointerdown", onPointer);
+    return () => document.removeEventListener("pointerdown", onPointer);
   }, []);
 
-  const handleBookSelect = (book: Book) => {
-    setIsDropdownVisible(false);
-    onBookSelect(book);
-  };
+  const handleBookSelect = useCallback(
+    (book: Book) => {
+      setIsDropdownVisible(false);
+      onBookSelect(book);
+    },
+    [onBookSelect]
+  );
 
-  const handleSearchClick = () => {
+  const handleSearchClick = useCallback(() => {
     setIsDropdownVisible(false);
     onSearch();
-  };
+  }, [onSearch]);
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+  // If Enter pressed when dropdown closed: select first or search
+  const handleKeyPress = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
       e.preventDefault();
-      if (filteredBooks.length > 0) {
+      if (isDropdownVisible && filteredBooks.length > 0) {
+        handleBookSelect(filteredBooks[0]);
+      } else if (filteredBooks.length === 1) {
+        // If one result but dropdown hidden (e.g. small screen), still pick it
         handleBookSelect(filteredBooks[0]);
       } else {
         handleSearchClick();
@@ -90,24 +116,21 @@ export function SearchBar({
   };
 
   return (
-    <Card className="p-6 sm:p-8 mb-8 shadow-lg">
+    <Card className="p-6 sm:p-8 mb-8 shadow-lg" ref={containerRef}>
       <div className="space-y-4">
         <div>
-          <label 
-            htmlFor="book-search"
-            className="block text-lg font-semibold text-gray-900 mb-4"
-          >
+          <label htmlFor="book-search" className="block text-lg font-semibold text-gray-900 mb-4">
             Search for a book to get recommendations
           </label>
 
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative">
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Search 
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 pointer-events-none" 
+                <Search
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 pointer-events-none"
                   aria-hidden="true"
                 />
-                
+
                 <Input
                   ref={inputRef}
                   id="book-search"
@@ -122,11 +145,16 @@ export function SearchBar({
                   aria-autocomplete="list"
                   aria-expanded={isDropdownVisible}
                   role="combobox"
+                  aria-controls={listboxId}
                 />
 
                 {searchQuery && (
                   <Button
-                    onClick={onReset}
+                    onClick={() => {
+                      onReset();
+                      setIsDropdownVisible(false);
+                      inputRef.current?.focus();
+                    }}
                     variant="ghost"
                     size="icon"
                     className="absolute right-2 top-1/2 transform -translate-y-1/2 hover:bg-transparent"
@@ -149,10 +177,11 @@ export function SearchBar({
             </div>
 
             {isDropdownVisible && filteredBooks.length > 0 && (
-              <SearchDropdown 
-                books={filteredBooks} 
+              <SearchDropdown
+                books={filteredBooks}
                 onSelect={handleBookSelect}
                 searchQuery={searchQuery}
+                listboxId={listboxId}
               />
             )}
           </div>
@@ -174,32 +203,39 @@ interface SearchDropdownProps {
   books: Book[];
   onSelect: (book: Book) => void;
   searchQuery: string;
+  listboxId: string;
 }
 
-function SearchDropdown({ books, onSelect, searchQuery }: SearchDropdownProps) {
+function SearchDropdown({ books, onSelect, searchQuery, listboxId }: SearchDropdownProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
+    setSelectedIndex(0);
+  }, [books, searchQuery]);
+
+  // Keyboard navigation inside dropdown
+  useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowDown') {
+      if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedIndex(i => (i < books.length - 1 ? i + 1 : i));
-      } else if (e.key === 'ArrowUp') {
+        setSelectedIndex((i) => (i < books.length - 1 ? i + 1 : i));
+      } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedIndex(i => (i > 0 ? i - 1 : i));
-      } else if (e.key === 'Enter' && books[selectedIndex]) {
+        setSelectedIndex((i) => (i > 0 ? i - 1 : i));
+      } else if (e.key === "Enter") {
         e.preventDefault();
-        onSelect(books[selectedIndex]);
+        if (books[selectedIndex]) onSelect(books[selectedIndex]);
+      } else if (e.key === "Escape") {
+        // let parent handle close on Escape
       }
     };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
   }, [books, selectedIndex, onSelect]);
-
-  useEffect(() => setSelectedIndex(0), [searchQuery]);
 
   return (
     <div
+      id={listboxId}
       role="listbox"
       className="absolute z-50 w-full mt-2 shadow-lg border rounded-md max-h-96 overflow-auto bg-white"
     >
@@ -207,13 +243,15 @@ function SearchDropdown({ books, onSelect, searchQuery }: SearchDropdownProps) {
         const isSelected = idx === selectedIndex;
         return (
           <button
+            type="button"
             key={book.id}
+            id={`${listboxId}-option-${idx}`}
             role="option"
             aria-selected={isSelected}
+            aria-posinset={idx + 1}
+            aria-setsize={books.length}
             onClick={() => onSelect(book)}
-            className={`w-full text-left p-3 ${
-              isSelected ? 'bg-blue-500 text-white' : 'hover:bg-blue-100'
-            }`}
+            className={`w-full text-left p-3 ${isSelected ? "bg-blue-500 text-white" : "hover:bg-blue-100"}`}
           >
             <div className="font-semibold truncate">{highlightMatch(book.title, searchQuery)}</div>
             <div className="text-sm text-gray-600 truncate">{highlightMatch(book.author, searchQuery)}</div>
@@ -223,18 +261,23 @@ function SearchDropdown({ books, onSelect, searchQuery }: SearchDropdownProps) {
       })}
       <div className="p-2 text-xs flex justify-between text-gray-400 border-t">
         <span>Use ↑↓ to navigate</span>
-        <span>{books.length} {books.length === 1 ? 'result' : 'results'}</span>
+        <span>
+          {books.length} {books.length === 1 ? "result" : "results"}
+        </span>
       </div>
     </div>
   );
 }
 
-
+function escapeRegExp(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 function highlightMatch(text: string, query: string): React.ReactNode {
   if (!query.trim()) return text;
 
-  const parts = text.split(new RegExp(`(${query})`, 'gi'));
+  const safe = escapeRegExp(query);
+  const parts = text.split(new RegExp(`(${safe})`, "gi"));
   return (
     <>
       {parts.map((part, index) =>

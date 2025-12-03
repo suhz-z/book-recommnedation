@@ -2,7 +2,6 @@
 
 import { Suspense } from 'react';
 import { useBookSearch } from '@/hooks/useBookSearch';
-import { PageLayout } from '@/components/Layout';
 import { SearchBar } from '@/components/SearchBar';
 import { SelectedBookCard } from '@/components/bookCard';
 import { SimilarBooksGrid } from '@/components/SimilarBookGrid';
@@ -24,7 +23,7 @@ function HomeContent() {
   } = useBookSearch();
 
   return (
-    <PageLayout>
+    <>
       <SearchBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -50,7 +49,7 @@ function HomeContent() {
       )}
 
       {!selectedBook && !loading && <EmptyState />}
-    </PageLayout>
+    </>
   );
 }
 

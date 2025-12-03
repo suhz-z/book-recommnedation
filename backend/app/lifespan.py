@@ -7,24 +7,24 @@ from app.books import BookService
 from app.embed import EmbeddingService
 from app.api import routes
 import numpy as np
+import logging
 
-
+logger = logging.getLogger(__name__) 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application startup and shutdown."""
     # Startup
-    print(" Starting Book Recommendation API...")
+    logger.info(" Starting Book Recommendation API...")
     
     # Create tables
     create_db_and_tables()
-    print(" Database tables ready")
-    print(f"SECRET_KEY: {settings.SECRET_KEY}")
-    print(f"Type: {type(settings.SECRET_KEY)}")
+    logger.info(" Database tables ready")
+    logger.info(f"Type: {type(settings.SECRET_KEY)}")
     
     # Initialize services
     routes.book_service = BookService()
     routes.embedding_service = EmbeddingService(settings.MODEL_NAME)
-    print(f" Loaded model: {settings.MODEL_NAME}")
+    logger.info(f" Loaded model: {settings.MODEL_NAME}")
     
     # Load or build FAISS index
     if not routes.embedding_service.load_index(
@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
         settings.EMBEDDINGS_PATH,
         settings.IDS_PATH
     ):
-        print(" Building FAISS index...")
+        logger.info(" Building FAISS index...")
         books = routes.book_service.get_all_for_embeddings()
         
         if books:
@@ -43,17 +43,17 @@ async def lifespan(app: FastAPI):
             ids = np.array([b.id for b in books])
             routes.embedding_service.build_index(texts, ids, settings.FAISS_INDEX_PATH)
         else:
-            print("  No books found in database")
+            logger.info("  No books found in database")
     else:
-        print("Loaded existing FAISS index")
+        logger.info("Loaded existing FAISS index")
 
-    print(f"ENV: {settings.ENV}")
-    print(f"APP_ORIGIN: {settings.APP_ORIGIN}")
-    print(f"WEATHER_API_KEY configured: {bool(settings.WEATHER_API_KEY)}")
+    logger.info(f"ENV: {settings.ENV}")
+    logger.info(f"APP_ORIGIN: {settings.APP_ORIGIN}")
+    logger.info(f"WEATHER_API_KEY configured: {bool(settings.WEATHER_API_KEY)}")
     
-    print(" Application ready!")
+    logger.info(" Application ready!")
     
     yield
     
     # Shutdown
-    print(" Shutting down...")
+    logger.info(" Shutting down...")

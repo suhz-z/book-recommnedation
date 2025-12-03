@@ -17,29 +17,27 @@ export function RegisterForm() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-const onSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError("");
-  setSuccess("");
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
 
-  if (password.length < 8) {
-    setError("Password must be at least 8 characters");
-    return;
-  }
-  
-  if (password.length > 72) {
-    setError("Password cannot be longer than 72 characters");
-    return;
-  }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
 
-  if (password !== confirmPassword) {
-    setError("Passwords do not match");
-    return;
-  }
+    if (password.length > 72) {
+      setError("Password cannot be longer than 72 characters");
+      return;
+    }
 
-
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
 
     startTransition(async () => {
       try {
@@ -49,16 +47,16 @@ const onSubmit = async (e: React.FormEvent) => {
           body: JSON.stringify({ name, email, password }),
         });
 
-        const data = await res.json();
-
         if (res.ok) {
-          setSuccess("Account created successfully!");
+          setSuccess("Account created successfully! Redirecting...");
           setTimeout(() => router.push("/login"), 1500);
         } else {
-          setError(data.error || "Registration failed");
+          const data = await res.json();
+          setError(data.detail || "Registration failed");
         }
       } catch (err) {
-        setError("Something went wrong");
+        console.error("Registration error:", err);
+        setError("Network error. Please try again.");
       }
     });
   };
