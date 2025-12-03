@@ -25,6 +25,7 @@ async function getUser() {
       headers: {
         Cookie: `access_token=${token.value}`
       },
+      credentials: 'include',
       cache: 'no-store' // Don't cache user data
     });
     

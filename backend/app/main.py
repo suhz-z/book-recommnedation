@@ -43,7 +43,7 @@ if settings.ENV == "development":
     # Development: Allow all origins
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Allow all origins
+        allow_origins=["http://localhost:3000"],  # Allow all origins
         allow_credentials=True,
         allow_methods=["*"],  # Allow all methods
         allow_headers=["*"],  # Allow all headers
@@ -56,6 +56,7 @@ else:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["Set-Cookie"]
     )
 
 app.include_router(routes.router)

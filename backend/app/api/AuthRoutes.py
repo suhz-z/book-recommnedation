@@ -74,10 +74,11 @@ async def login(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=settings.ENV == "production",  # HTTPS only in production
-        samesite="lax",  # CSRF protection
+        secure=True,
+        samesite="none",  # CSRF protection
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
-        path="/"
+        path="/",
+        domain=None
     )
     
     return {
