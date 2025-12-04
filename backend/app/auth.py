@@ -50,8 +50,12 @@ def verify_token(token: str) -> Optional[str]:
             return None
         return email
     except jwt.ExpiredSignatureError:
-        # Token has expired
-        return None
+        # Token has expired - will be handled by caller
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired. Please login again.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     except JWTError:
         # Invalid token
         return None
@@ -68,10 +72,7 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    print(f"Received cookie: {access_token}")  # Debug log
-    
     if not access_token:
-        print("No cookie found!")  # Debug log
         raise credentials_exception
     
     email = verify_token(access_token)

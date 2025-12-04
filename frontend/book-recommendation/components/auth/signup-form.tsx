@@ -41,7 +41,8 @@ export function RegisterForm() {
 
     startTransition(async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
+        // Post to the relative API route so Next.js rewrites/proxy handles the backend
+        const res = await fetch(`/api/auth/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password }),
