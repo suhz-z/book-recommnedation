@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    const backend = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    return [
+      {
+        // Proxy any /api/* request to the backend so requests appear same-origin
+        source: '/api/:path*',
+        destination: `${backend}/api/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
