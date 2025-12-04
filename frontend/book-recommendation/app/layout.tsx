@@ -18,20 +18,22 @@ async function getUser() {
     return null;
   }
   
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  
   try {
-    // Call the app API route which proxies to the backend. Include the token cookie.
-    const res = await fetch(`/api/auth/me`, {
+    const res = await fetch(`${API_URL}/api/auth/me`, {
       headers: {
-        Cookie: `access_token=${token.value}`,
+        Cookie: `access_token=${token.value}`
       },
+      credentials: 'include',
       cache: 'no-store',
-      next: { revalidate: 0 }, // Don't cache user data
+      next: { revalidate: 0 } // Don't cache user data
     });
-
+    
     if (!res.ok) {
       return null;
     }
-
+    
     return await res.json();
   } catch (error) {
     console.error('Failed to fetch user:', error);

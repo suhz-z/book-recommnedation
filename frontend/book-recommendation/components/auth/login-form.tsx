@@ -14,14 +14,15 @@ export function LoginForm() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
+  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     startTransition(async () => {
       try {
-        // Post to the relative API route so Next.js rewrites/proxy handles the backend
-        const res = await fetch(`/api/auth/login`, {
+        const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
