@@ -166,6 +166,7 @@ async def get_weather(
     
 
     api_key = settings.WEATHER_API_KEY
+    print(f"Using WEATHER_API_KEY of type: {bool(api_key)}")
     # If not in cache, fetch from API
     if not api_key:
         raise HTTPException(

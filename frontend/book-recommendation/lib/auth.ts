@@ -1,20 +1,20 @@
 // lib/auth.ts
 import { cookies } from 'next/headers';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export async function getSession() {
   const cookieStore = await cookies();
-  const token = cookieStore.get('access_token')?.value;
+  const token = cookieStore.get('session_token')?.value;
   
   if (!token) return null;
 
   try {
-    // Use relative path so Next's app API route handles the request
-    const response = await fetch(`/api/auth/me`, {
+    const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
       headers: {
-        Cookie: `access_token=${token}`,
+        Cookie: `session_token=${token}`, // Pass cookie to FastAPI
       },
-      cache: 'no-store',
-      next: { revalidate: 0 },
+      credentials: 'include',
     });
 
     if (response.ok) {

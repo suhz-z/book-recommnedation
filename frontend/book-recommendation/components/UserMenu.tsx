@@ -37,8 +37,7 @@ export function UserMenu({ user }: UserMenuProps) {
     setIsLoggingOut(true);
     
     try {
-      // Post to the relative API route so Next.js proxy handles the backend
-      const res = await fetch(`/api/auth/logout`, {
+      const res = await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include'
       });
