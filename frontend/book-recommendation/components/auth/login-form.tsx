@@ -35,7 +35,7 @@ export function LoginForm() {
           await new Promise(resolve => setTimeout(resolve, 100));
           console.log('Can access cookie?', document.cookie.includes('access_token'));
 
-          router.push("/");
+          router.replace("/");
           router.refresh(); // Refresh to update user state in layout
         } else {
           const data = await res.json();

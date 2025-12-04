@@ -4,16 +4,15 @@ import { cookies } from 'next/headers';
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export async function getSession() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('session_token')?.value;
-  
-  if (!token) return null;
-
+  // Try to read an `access_token` cookie from the Next app (may be present in dev)
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('access_token')?.value;
+
+    // If token exists in Next app's cookie store, we still prefer letting the
+    // browser send cookies automatically. We'll call the backend without
+    // manually setting the Cookie header.
     const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
-      headers: {
-        Cookie: `session_token=${token}`, // Pass cookie to FastAPI
-      },
       credentials: 'include',
     });
 

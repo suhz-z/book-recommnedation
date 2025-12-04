@@ -44,6 +44,7 @@ export function RegisterForm() {
         const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ name, email, password }),
         });
 
