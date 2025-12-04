@@ -26,7 +26,8 @@ async function getUser() {
         Cookie: `access_token=${token.value}`
       },
       credentials: 'include',
-      cache: 'no-store' // Don't cache user data
+      cache: 'no-store',
+      next: { revalidate: 0 } // Don't cache user data
     });
     
     if (!res.ok) {

@@ -30,6 +30,10 @@ export function LoginForm() {
         });
 
         if (res.ok) {
+  
+          console.log('Cookies after login:', document.cookie);
+          await new Promise(resolve => setTimeout(resolve, 100));
+
           router.push("/");
           router.refresh(); // Refresh to update user state in layout
         } else {

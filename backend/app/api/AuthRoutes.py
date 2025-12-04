@@ -78,7 +78,6 @@ async def login(
         samesite="none",  # CSRF protection
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
         path="/",
-        domain=None
     )
     
     return {
