@@ -33,6 +33,7 @@ export function LoginForm() {
   
           console.log('Cookies after login:', document.cookie);
           await new Promise(resolve => setTimeout(resolve, 100));
+          console.log('Can access cookie?', document.cookie.includes('access_token'));
 
           router.push("/");
           router.refresh(); // Refresh to update user state in layout

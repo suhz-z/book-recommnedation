@@ -61,11 +61,6 @@ def get_current_user(
     access_token: Optional[str] = Cookie(None),
     session: Session = Depends(get_session)
 ) -> User:
-    print(f"Received cookie: {access_token}")  # Debug log
-    
-    if not access_token:
-        print("No cookie found!")  # Debug log
-        raise credentials_exception   
     """Get current authenticated user from cookie."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -73,7 +68,10 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
+    print(f"Received cookie: {access_token}")  # Debug log
+    
     if not access_token:
+        print("No cookie found!")  # Debug log
         raise credentials_exception
     
     email = verify_token(access_token)

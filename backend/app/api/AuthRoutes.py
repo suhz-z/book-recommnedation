@@ -69,13 +69,17 @@ async def login(
     # Create access token
     access_token = create_access_token(data={"sub": user.email})
     
-    # Set HttpOnly cookie
+    # Set HttpOnly cookie with environment-aware settings
+    # In production with cross-origin requests, use samesite="none" + secure
+    # In development, use samesite="lax" for better CSRF protection
+    is_production = settings.ENV.lower() == "production"
+    
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=True,
-        samesite="none",  # CSRF protection
+        secure=is_production,  # Only HTTPS in production
+        samesite="none" if is_production else "lax",
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
         path="/",
     )
