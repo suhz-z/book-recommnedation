@@ -2,13 +2,20 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, LayoutDashboard, Shield } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth } from '@/hooks/AuthContext';
 
 interface UserMenuProps {
-  user: { name: string; email: string };
+  user: { 
+    name: string; 
+    email: string;
+    is_admin?: boolean;
+  };
 }
 
 export function UserMenu({ user }: UserMenuProps) {
+  const { logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -43,8 +50,8 @@ export function UserMenu({ user }: UserMenuProps) {
       });
 
       if (res.ok) {
+        logout(); // Clears user from context
         router.push('/login');
-        router.refresh(); // Refresh server components to update user state
       } else {
         console.error('Logout failed');
         setIsLoggingOut(false);
@@ -53,6 +60,10 @@ export function UserMenu({ user }: UserMenuProps) {
       console.error('Logout error:', error);
       setIsLoggingOut(false);
     }
+  };
+
+  const handleLinkClick = () => {
+    setIsOpen(false);
   };
 
   return (
@@ -72,6 +83,7 @@ export function UserMenu({ user }: UserMenuProps) {
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-50">
+          {/* User Info */}
           <div className="px-4 py-3 border-b border-neutral-100">
             <p className="text-sm font-medium text-neutral-900 truncate">
               {user.name}
@@ -81,14 +93,40 @@ export function UserMenu({ user }: UserMenuProps) {
             </p>
           </div>
           
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <LogOut className="h-4 w-4" />
-            {isLoggingOut ? 'Logging out...' : 'Logout'}
-          </button>
+          {/* Navigation Links */}
+          <div className="py-1">
+            <Link
+              href="/dashboard"
+              onClick={handleLinkClick}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </Link>
+            
+            {user.is_admin && (
+              <Link
+                href="/admin"
+                onClick={handleLinkClick}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+              >
+                <Shield className="h-4 w-4" />
+                Admin Panel
+              </Link>
+            )}
+          </div>
+
+          {/* Logout Button */}
+          <div className="border-t border-neutral-100 pt-1">
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <LogOut className="h-4 w-4" />
+              {isLoggingOut ? 'Logging out...' : 'Logout'}
+            </button>
+          </div>
         </div>
       )}
     </div>

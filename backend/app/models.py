@@ -47,6 +47,7 @@ class User(SQLModel, table=True):
     hashed_password: str
     is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=datetime.now) 
+    is_admin: bool = Field(default=False)
 
 
 # Request/Response schemas
@@ -83,3 +84,15 @@ class UserResponse(BaseModel):
     name: str
     email: str
     is_active: bool
+
+
+class Alert(SQLModel, table=True):
+    __tablename__ = "alerts"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    severity: str  # e.g. "info", "warning", "critical"
+    source: Optional[str] = None  # e.g. "monitor", "weather_api", "embedding_service"
+    message: str
+    created_at: datetime = Field(default_factory=datetime.now)
+    resolved: bool = Field(default=False)
+    resolved_at: Optional[datetime] = None

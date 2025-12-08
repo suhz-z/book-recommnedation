@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/AuthContext";
 import Link from "next/link";
 
 export function LoginForm() {
+  const { refreshUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -31,12 +33,9 @@ export function LoginForm() {
 
         if (res.ok) {
   
-          console.log('Cookies after login:', document.cookie);
-          await new Promise(resolve => setTimeout(resolve, 100));
-          console.log('Can access cookie?', document.cookie.includes('access_token'));
-
-          router.replace("/");
-          router.refresh(); // Refresh to update user state in layout
+          await refreshUser(); // Updates Header immediately
+          router.push('/');
+           // Refresh to update user state in layout
         } else {
           const data = await res.json();
           setError(data.detail || "Login failed");

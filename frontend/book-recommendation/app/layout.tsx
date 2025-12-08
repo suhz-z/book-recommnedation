@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { QueryProvider } from "./providers";
 import { cookies } from 'next/headers';
 import { Header } from "@/components/Header";
+import { AuthProvider } from "@/hooks/AuthContext";
 
 export const metadata = {
   title: "Book — Recommendations",
@@ -27,7 +28,7 @@ async function getUser() {
       },
       credentials: 'include',
       cache: 'no-store',
-      next: { revalidate: 0 } // Don't cache user data
+      next: { revalidate: 0 }
     });
     
     if (!res.ok) {
@@ -48,12 +49,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang="en">
       <body>
         <QueryProvider>
-          <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100">
-            <Header user={user} />
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              {children}
-            </main>
-          </div>
+          <AuthProvider initialUser={user}>
+            <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100">
+              <Header />
+              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {children}
+              </main>
+            </div>
+          </AuthProvider>
         </QueryProvider>
       </body>
     </html>

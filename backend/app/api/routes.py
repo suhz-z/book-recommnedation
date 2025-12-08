@@ -9,8 +9,10 @@ from app.api import AuthRoutes as auth
 import httpx
 from datetime import datetime, timedelta
 from app.config import settings
+from app.api import dashboard
 
 router = APIRouter()
+
 
 # Global services (initialized in lifespan)
 book_service: Optional[BookService] = None
@@ -21,6 +23,7 @@ book_list_adapter = TypeAdapter(List[Book])
 similar_book_list_adapter = TypeAdapter(List[SimilarBook])
 
 router.include_router(auth.router)
+router.include_router(dashboard.router, prefix="/admin")
 
 #cache
 weather_cache = {}
