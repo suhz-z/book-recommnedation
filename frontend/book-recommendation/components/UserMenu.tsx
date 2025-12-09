@@ -100,14 +100,14 @@ export function UserMenu({ user }: UserMenuProps) {
           {/* Navigation Links - Only show if admin */}
           {user.is_admin && (
             <div className="py-1">
-              <Link
-                href="/dashboard"
+              <button
+                onClick={() => { router.push('/dashboard'); setIsOpen(false); }}
                 
                 className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Admin Dashboard
-              </Link>
+              </button>
               
             </div>
           )}
