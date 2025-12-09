@@ -1,6 +1,6 @@
 "use client";
 
-import { useDashboardStatus, useDashboardAlerts, useDashboardLogs } from "@/lib/api";
+import { useDashboardStatus, useMonitorHealth, useDashboardAlerts, useDashboardLogs } from "@/lib/api";
 import { Activity, AlertCircle, FileText } from "lucide-react";
 import {
   StatusBadge,
@@ -11,10 +11,11 @@ import {
 
 export default function DashboardPage() {
   const { data: status, isLoading: statusLoading } = useDashboardStatus();
+  const { data: monitorHealth, isLoading: monitorLoading } = useMonitorHealth(); // Fixed: use correct hook
   const { data: alertsData, isLoading: alertsLoading } = useDashboardAlerts();
   const { data: logsData, isLoading: logsLoading } = useDashboardLogs(50);
 
-  if (statusLoading) {
+  if (statusLoading || monitorLoading) { // Include monitor loading state
     return <DashboardLoader />;
   }
 
@@ -28,17 +29,13 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-neutral-50 p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <DashboardHeader />
+        <div className="flex items-center justify-between">
+          <DashboardHeader />
+          <StatusBadge status={status.status} monitor={monitorHealth} />
+        </div>
         
         {/* Status Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatusCard
-            icon={Activity}
-            title="System Status"
-            value={status.status === 'healthy' ? 'Operational' : 'Degraded'}
-            message={status.message}
-            status={status.status}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <StatusCard
             icon={AlertCircle}
             title="Active Alerts"
@@ -113,6 +110,7 @@ interface StatusCardProps {
   status: 'healthy' | 'unhealthy' | 'warning';
 }
 
+
 function StatusCard({ icon: Icon, title, value, message, status }: StatusCardProps) {
   const statusColors = {
     healthy: 'bg-green-50 border-green-200',
@@ -133,7 +131,7 @@ function StatusCard({ icon: Icon, title, value, message, status }: StatusCardPro
   };
 
   return (
-    <div className={`p-6 rounded-lg border-2 ${statusColors[status]} transition-all`}>
+    <div className={`p-6 rounded-lg border-2 ${statusColors[status]} transition-all hover:shadow-md`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm font-medium text-neutral-600 mb-1">{title}</p>

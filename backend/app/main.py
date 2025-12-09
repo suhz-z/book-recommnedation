@@ -3,27 +3,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.lifespan import lifespan
 from app.api import routes
-import logging
+from app.logging import logger 
 import time
 from fastapi import Request
-from pathlib import Path
 
-Path("logs").mkdir(exist_ok=True)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s | %(levelname)s | %(message)s',
-    handlers=[
-        logging.FileHandler("logs/fastapi.log"),
-        logging.StreamHandler()  # Also print to console
-    ]
-)
-logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Book Recommendation API",
     version="1.0.0",
     lifespan=lifespan
 )
+
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -37,19 +27,16 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-
-
+# CORS Configuration
 if settings.ENV == "development":
-    # Development: Allow all origins
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000"],  # Allow all origins
+        allow_origins=["http://localhost:3000"],
         allow_credentials=True,
-        allow_methods=["*"],  # Allow all methods
-        allow_headers=["*"],  # Allow all headers
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 else:
-    # Production: Restricted origins
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[settings.APP_ORIGIN],
@@ -59,11 +46,8 @@ else:
         expose_headers=["Set-Cookie"]
     )
 
+
 app.include_router(routes.router)
-
-
-
-
 
 
 if __name__ == "__main__":
@@ -72,5 +56,6 @@ if __name__ == "__main__":
         "app.main:app",
         host="0.0.0.0",
         port=8000,
-        reload=settings.DEBUG
+        reload=settings.DEBUG,
+        log_config=None  # Disable uvicorn's default logging, use ours
     )

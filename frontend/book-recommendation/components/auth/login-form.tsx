@@ -32,6 +32,7 @@ export function LoginForm() {
         });
 
         if (res.ok) {
+      
   
           await refreshUser(); // Updates Header immediately
           router.push('/');

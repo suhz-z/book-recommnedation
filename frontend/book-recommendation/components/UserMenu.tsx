@@ -6,6 +6,7 @@ import { LogOut, LayoutDashboard, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/AuthContext';
 
+
 interface UserMenuProps {
   user: { 
     name: string; 
@@ -13,6 +14,7 @@ interface UserMenuProps {
     is_admin?: boolean;
   };
 }
+
 
 export function UserMenu({ user }: UserMenuProps) {
   const { logout } = useAuth();
@@ -91,30 +93,35 @@ export function UserMenu({ user }: UserMenuProps) {
             <p className="text-xs text-neutral-500 truncate">
               {user.email}
             </p>
+            {user.is_admin && (
+              <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+                Admin
+              </span>
+            )}
           </div>
           
-          {/* Navigation Links */}
-          <div className="py-1">
-            <Link
-              href="/dashboard"
-              onClick={handleLinkClick}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </Link>
-            
-            {user.is_admin && (
+          {/* Navigation Links - Only show if admin */}
+          {user.is_admin && (
+            <div className="py-1">
+              <Link
+                href="/dashboard"
+                onClick={handleLinkClick}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Admin Dashboard
+              </Link>
+              
               <Link
                 href="/admin"
                 onClick={handleLinkClick}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
               >
                 <Shield className="h-4 w-4" />
-                Admin Panel
+                System Monitor
               </Link>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Logout Button */}
           <div className="border-t border-neutral-100 pt-1">

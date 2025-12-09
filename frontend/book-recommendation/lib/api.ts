@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import type { DashboardStatus, Alert, LogEntry } from '../types/user';
+import type { DashboardStatus, Alert, LogEntry, MonitorStats } from '../types/user';
 import type { Book, SimilarBook } from '../types/book';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -42,6 +42,15 @@ export const dashboardService = {
     });
     if (!response.ok) throw new Error('Failed to fetch system status');
     return await response.json();
+  },
+
+  async fetchMonitorHealth(): Promise<MonitorStats> {
+    const response = await fetch(`${API_URL}/admin/api/monitor/status`, {
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to fetch monitor health');
+    const data = await response.json();
+    return data.monitor;
   },
 
   async fetchAlerts(limit = 50): Promise<{ alerts: Alert[]; count: number; critical_count: number }> {
@@ -97,6 +106,15 @@ export const useDashboardStatus = () => {
     queryKey: ['dashboard-status'],
     queryFn: dashboardService.fetchStatus,
     refetchInterval: 30000, // Refresh every 30 seconds
+    retry: 2,
+  });
+};
+
+export const useMonitorHealth = () => {
+  return useQuery({
+    queryKey: ['monitor-health'],
+    queryFn: dashboardService.fetchMonitorHealth,
+    refetchInterval: 30000,
     retry: 2,
   });
 };

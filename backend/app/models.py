@@ -84,6 +84,7 @@ class UserResponse(BaseModel):
     name: str
     email: str
     is_active: bool
+    is_admin: bool
 
 
 class Alert(SQLModel, table=True):

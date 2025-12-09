@@ -1,10 +1,15 @@
+// hooks/AuthContext.tsx
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface User {
+  id: number;  // ✅ Add id
   name: string;
   email: string;
+  is_admin: boolean;
+  is_active: boolean;
+  created_at: string;
 }
 
 interface AuthContextType {
@@ -37,6 +42,8 @@ export function AuthProvider({
       
       if (res.ok) {
         const data = await res.json();
+        console.log('Fetched user data:', data); // ✅ Debug log
+        console.log('is_admin value:', data.is_admin); // ✅ Debug log
         setUser(data);
       } else {
         setUser(null);
