@@ -10,6 +10,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 import os
+from app.services.monitor import Monitor
 
 
 router = APIRouter(tags=["Dashboard"])
@@ -19,7 +20,18 @@ LOG_FILE = Path("logs/fastapi.log")
 LOG_TAIL_MAX_LINES = 500
 
 
-# ==================== HEALTH STATUS ====================
+# Dependency for monitor access
+def get_monitor(request: Request) -> Monitor:
+    """Dependency to get monitor instance."""
+    if not hasattr(request.app.state, 'monitor'):
+        raise HTTPException(
+            status_code=503,
+            detail="Monitor service not initialized"
+        )
+    return request.app.state.monitor
+
+
+# status check
 async def check_overall_status(session: Session) -> Dict[str, Any]:
     """Check overall system status (database connectivity)."""
     try:
@@ -35,7 +47,7 @@ async def check_overall_status(session: Session) -> Dict[str, Any]:
         }
 
 
-# ==================== ALERTS ====================
+# alert
 def get_alerts(session: Session, limit: int = 50) -> List[Dict[str, Any]]:
     """Get unresolved alerts from database."""
     statement = select(Alert).where(
@@ -57,7 +69,7 @@ def get_alerts(session: Session, limit: int = 50) -> List[Dict[str, Any]]:
     return alerts
 
 
-# ==================== LOGS ====================
+# logs
 def tail_file_lines(path: Path, n: int = 100) -> List[str]:
     """Simple tail implementation for last n lines."""
     if not path.exists():
@@ -94,7 +106,6 @@ def read_recent_logs(lines: int = 50) -> List[Dict[str, str]]:
         if not line:
             continue
         
-        # Parse log format: "timestamp | level | message"
         parts = line.split('|', 2)
         if len(parts) >= 3:
             logs.append({
@@ -112,7 +123,7 @@ def read_recent_logs(lines: int = 50) -> List[Dict[str, str]]:
     return logs
 
 
-# ==================== ROUTES ====================
+# routes
 @router.get("/", response_class=HTMLResponse)
 async def dashboard_home(
     request: Request,
@@ -147,6 +158,21 @@ async def api_status_check(
         "status": system_status["status"],
         "message": system_status["message"],
         "timestamp": datetime.utcnow().isoformat() + "Z"
+    }
+
+
+# monitor health check
+@router.get("/api/monitor/status")
+async def monitor_health(
+    monitor: Monitor = Depends(get_monitor),
+    current_admin: User = Depends(get_current_active_admin)
+):
+    """Get monitor health statistics - ADMIN ONLY."""
+    stats = monitor.get_stats()
+    
+    return {
+        "monitor": stats,
+        "timestamp": datetime.now().isoformat()
     }
 
 

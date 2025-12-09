@@ -11,15 +11,27 @@ export interface User {
 }
 
 // Dashboard types
-export type ServiceStatus = 'healthy' | 'unhealthy';
+export type ServiceStatus = "healthy" | "unhealthy" | "degraded";
 export type AlertSeverity = 'warning' | 'critical';
 export type LogLevel = 'INFO' | 'WARNING' | 'ERROR' | 'DEBUG' | 'CRITICAL';
 
+export interface MonitorStats {
+  running: boolean;
+  last_check: string | null;
+  total_checks: number;
+  check_errors: number;
+  uptime_checks: number;
+}
+
+// Update DashboardStatus to include monitor
 export interface DashboardStatus {
   status: ServiceStatus;
   message: string;
   timestamp: string;
+  monitor?: MonitorStats;
 }
+
+
 
 export interface Alert {
   id?: number;

@@ -1,9 +1,11 @@
+# app/routes/auth.py
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlmodel import Session, select
-from app.models import User, UserCreate, UserLogin, Token, UserResponse
+from app.models import User, UserCreate, UserLogin, UserResponse
 from app.auth import Hasher, create_access_token, get_current_user
 from app.db.session import get_session
 from app.config import settings
+
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -11,7 +13,6 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 @router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, session: Session = Depends(get_session)):
     """Register a new user."""
-    # Check if email already exists
     statement = select(User).where(User.email == user_data.email)
     existing_user = session.exec(statement).first()
     
@@ -21,12 +22,12 @@ async def register(user_data: UserCreate, session: Session = Depends(get_session
             detail="Email already registered"
         )
     
-    # Create new user
     hashed_password = Hasher.get_password_hash(user_data.password)
     new_user = User(
         name=user_data.name,
         email=user_data.email,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        is_admin=False  # ✅ Default to False for signups
     )
     
     session.add(new_user)
@@ -43,7 +44,6 @@ async def login(
     session: Session = Depends(get_session)
 ):
     """Login and set HttpOnly cookie."""
-    # Find user by email
     statement = select(User).where(User.email == user_data.email)
     user = session.exec(statement).first()
     
@@ -53,7 +53,6 @@ async def login(
             detail="Incorrect email or password"
         )
     
-    # Verify password
     if not Hasher.verify_password(user_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -66,21 +65,17 @@ async def login(
             detail="Account is inactive"
         )
     
-    # Create access token
     access_token = create_access_token(data={"sub": user.email})
     
-    # Set HttpOnly cookie with environment-aware settings
-    # In production with cross-origin requests, use samesite="none" + secure
-    # In development, use samesite="lax" for better CSRF protection
     is_production = settings.ENV.lower() == "production"
     
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=is_production,  # Only HTTPS in production
+        secure=is_production,
         samesite="none" if is_production else "lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/",
     )
     
@@ -88,7 +83,8 @@ async def login(
         "message": "Login successful",
         "user": {
             "name": user.name,
-            "email": user.email
+            "email": user.email,
+            "is_admin": user.is_admin  # ✅ This is already correct
         }
     }
 
@@ -110,4 +106,5 @@ async def logout(response: Response):
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
     """Get current user profile."""
+    # ✅ UserResponse now includes is_admin, so this will work
     return current_user

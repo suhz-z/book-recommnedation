@@ -16,3 +16,5 @@ sentence-transformers
 sqlmodel
 uvicorn
 argon2_cffi
+aiofiles
+jinja2
