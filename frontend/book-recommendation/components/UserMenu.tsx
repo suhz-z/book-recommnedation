@@ -64,9 +64,6 @@ export function UserMenu({ user }: UserMenuProps) {
     }
   };
 
-  const handleLinkClick = () => {
-    setIsOpen(false);
-  };
 
   return (
     <div className="relative" ref={menuRef}>
@@ -105,21 +102,13 @@ export function UserMenu({ user }: UserMenuProps) {
             <div className="py-1">
               <Link
                 href="/dashboard"
-                onClick={handleLinkClick}
+                
                 className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Admin Dashboard
               </Link>
               
-              <Link
-                href="/admin"
-                onClick={handleLinkClick}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-              >
-                <Shield className="h-4 w-4" />
-                System Monitor
-              </Link>
             </div>
           )}
 
