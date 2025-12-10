@@ -1,7 +1,7 @@
 // hooks/AuthContext.tsx
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 interface User {
   id: number;  
@@ -59,6 +59,10 @@ export function AuthProvider({
   const logout = () => {
     setUser(null);
   };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, refreshUser: fetchUser, logout }}>
