@@ -4,7 +4,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface User {
-  id: number;  // ✅ Add id
+  id: number;  
   name: string;
   email: string;
   is_admin: boolean;
@@ -42,8 +42,8 @@ export function AuthProvider({
       
       if (res.ok) {
         const data = await res.json();
-        console.log('Fetched user data:', data); // ✅ Debug log
-        console.log('is_admin value:', data.is_admin); // ✅ Debug log
+        console.log('Fetched user data:', data); //
+        console.log('is_admin value:', data.is_admin); //-
         setUser(data);
       } else {
         setUser(null);
