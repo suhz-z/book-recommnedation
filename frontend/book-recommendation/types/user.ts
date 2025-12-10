@@ -10,6 +10,19 @@ export interface User {
   created_at: string;
 }
 
+export interface UserWelcome {
+  message: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    is_active: boolean;
+    created_at: string;
+    is_admin: boolean;
+  };
+}
+
+
 // Dashboard types
 export type ServiceStatus = "healthy" | "unhealthy" | "degraded";
 export type AlertSeverity = 'warning' | 'critical';

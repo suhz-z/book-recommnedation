@@ -3,8 +3,8 @@
 import { Suspense } from 'react';
 import { useBookSearch } from '@/hooks/useBookSearch';
 import { SearchBar } from '@/components/SearchBar';
-import { SelectedBookCard } from '@/components/bookCard';
-import { SimilarBooksGrid } from '@/components/SimilarBookGrid';
+import { SelectedBookCard } from '@/components/books/bookCard';
+import { SimilarBooksGrid } from '@/components/books/SimilarBookGrid';
 import { LoadingState, EmptyState } from '@/components/UIStates';
 
 function HomeContent() {

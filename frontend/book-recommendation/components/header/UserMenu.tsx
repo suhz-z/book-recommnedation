@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, LayoutDashboard, Shield } from 'lucide-react';
-import Link from 'next/link';
+import { LogOut, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/hooks/AuthContext';
 
 

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Star, Calendar, BookOpen } from 'lucide-react';
+import { FavoriteButton } from '../FavoriteButton';
 
 interface SelectedBookCardProps {
   book: Book;
@@ -15,7 +16,10 @@ export function SelectedBookCard({ book }: SelectedBookCardProps) {
   return (
     <Card className="mb-8">
       <CardHeader>
-        <CardTitle className="text-2xl">Selected Book</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-2xl">Selected Book</CardTitle>
+          <FavoriteButton bookId={book.id} variant="button" size="md" />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col md:flex-row gap-8">

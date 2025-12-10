@@ -1,9 +1,15 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field , Relationship
+from typing import List, Dict
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
-
+class UserBookFavorite(SQLModel, table=True):
+    __tablename__ = "user_book_favorites"
+    
+    user_id: int = Field(foreign_key="users.id", primary_key=True)
+    book_id: int = Field(foreign_key="books.id", primary_key=True)
+    favorited_at: datetime = Field(default_factory=datetime.now)
 class Book(SQLModel, table=True):
     __tablename__ = "books"
     
@@ -26,6 +32,12 @@ class Book(SQLModel, table=True):
     keywords: str
     cover_image_url: str
 
+    favorited_by_users: List["User"] = Relationship(
+        back_populates="favorite_books",
+        link_model=UserBookFavorite
+    )
+
+
 
 class SimilarBook(BaseModel):
     id: int
@@ -38,6 +50,9 @@ class SimilarBook(BaseModel):
     similarity_score: float
 
 
+
+
+
 class User(SQLModel, table=True):
     __tablename__ = "users"
     
@@ -48,6 +63,11 @@ class User(SQLModel, table=True):
     is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=datetime.now) 
     is_admin: bool = Field(default=False)
+
+    favorite_books: List["Book"] = Relationship(
+        back_populates="favorited_by_users",
+        link_model=UserBookFavorite
+    )
 
 
 # Request/Response schemas
@@ -86,6 +106,15 @@ class UserResponse(BaseModel):
     is_active: bool
     is_admin: bool
 
+class FavoriteBookResponse(BaseModel):
+    id: int
+    title: str
+    author: str
+    genre: str
+    subgenre: str
+    rating: float
+    cover_image_url: str
+    favorited_at: str
 
 class Alert(SQLModel, table=True):
     __tablename__ = "alerts"

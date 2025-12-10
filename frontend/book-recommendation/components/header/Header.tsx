@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { BookMarked, User, LogIn } from "lucide-react";
-import { WeatherWidget } from "./WeatherW";
+import { WeatherWidget } from "../WeatherW";
 import { UserMenu } from "./UserMenu";
 import { useAuth } from "@/hooks/AuthContext";
 

@@ -2,12 +2,12 @@ import "./globals.css";
 import type { ReactNode } from "react";
 import { QueryProvider } from "./providers";
 import { cookies } from 'next/headers';
-import { Header } from "@/components/Header";
+import { Header } from "@/components/header/Header";
 import { AuthProvider } from "@/hooks/AuthContext";
 
 export const metadata = {
-  title: "Book — Recommendations",
-  description: "read more books you'll love",
+  title: "BookRec",
+  description: "Read more books you'll love",
 };
 
 // Server function to get authenticated user
@@ -50,7 +50,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body>
         <QueryProvider>
           <AuthProvider initialUser={user}>
-            <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100">
+            <div className="min-h-screen bg-linear-to-br from-neutral-50 to-neutral-100">
               <Header />
               <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {children}

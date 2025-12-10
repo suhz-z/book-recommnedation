@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import type { DashboardStatus, Alert, LogEntry, MonitorStats } from '../types/user';
-import type { Book, SimilarBook } from '../types/book';
+import { useQuery , useMutation , useQueryClient } from '@tanstack/react-query';
+import type { DashboardStatus, Alert, LogEntry, MonitorStats, UserWelcome } from '../types/user';
+import type { Book, SimilarBook, FavoriteBook, FavoriteCheckResponse, FavoriteActionResponse } from '../types/book';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -31,6 +31,54 @@ export const bookService = {
       console.error('Error fetching similar books:', error);
       throw error;
     }
+  }
+};
+
+//favorite book service
+export const favoritesService = {
+  async getFavorites(): Promise<FavoriteBook[]> {
+    const response = await fetch(`${API_URL}/user/api/favorites`, {
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to fetch favorites');
+    return await response.json();
+  },
+
+  async addFavorite(bookId: number): Promise<FavoriteActionResponse> {
+    const response = await fetch(`${API_URL}/user/api/favorites/${bookId}`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to add favorite');
+    }
+    return await response.json();
+  },
+
+  async removeFavorite(bookId: number): Promise<FavoriteActionResponse> {
+    const response = await fetch(`${API_URL}/user/api/favorites/${bookId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to remove favorite');
+    return await response.json();
+  },
+
+  async checkFavorite(bookId: number): Promise<FavoriteCheckResponse> {
+    const response = await fetch(`${API_URL}/user/api/favorites/check/${bookId}`, {
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to check favorite status');
+    return await response.json();
+  },
+
+  async getFavoritesCount(): Promise<{ count: number; user_id: number }> {
+    const response = await fetch(`${API_URL}/user/api/favorites/count`, {
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to fetch favorites count');
+    return await response.json();
   }
 };
 
@@ -82,6 +130,19 @@ export const dashboardService = {
   }
 };
 
+
+//user-dahboard
+
+export const userDashboardService = {
+  async fetchWelcome(): Promise<UserWelcome> {
+    const response = await fetch(`${API_URL}/user/api/welcome`, {
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to fetch welcome message');
+    return await response.json();
+  }
+};
+
 // React Query Hooks - Books
 export const useAllBooks = (page = 1, pageSize = 500) => {
   return useQuery({
@@ -99,6 +160,59 @@ export const useSimilarBooks = (bookId: number | null, limit = 12) => {
     staleTime: 15 * 60 * 1000,
   });
 };
+
+//react query hooks - favorite books
+export const useFavorites = () => {
+  return useQuery({
+    queryKey: ['favorites'],
+    queryFn: favoritesService.getFavorites,
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+export const useCheckFavorite = (bookId: number | null) => {
+  return useQuery({
+    queryKey: ['favorite-check', bookId],
+    queryFn: () => favoritesService.checkFavorite(bookId!),
+    enabled: !!bookId,
+    staleTime: 1 * 60 * 1000,
+  });
+};
+
+export const useFavoritesCount = () => {
+  return useQuery({
+    queryKey: ['favorites-count'],
+    queryFn: favoritesService.getFavoritesCount,
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+export const useAddFavorite = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (bookId: number) => favoritesService.addFavorite(bookId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['favorite-check'] });
+      queryClient.invalidateQueries({ queryKey: ['favorites-count'] });
+    },
+  });
+};
+
+export const useRemoveFavorite = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (bookId: number) => favoritesService.removeFavorite(bookId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['favorite-check'] });
+      queryClient.invalidateQueries({ queryKey: ['favorites-count'] });
+    },
+  });
+};
+
 
 // React Query Hooks - Dashboard
 export const useDashboardStatus = () => {
@@ -134,5 +248,16 @@ export const useDashboardLogs = (lines = 50, level?: string) => {
     queryFn: () => dashboardService.fetchLogs(lines, level),
     refetchInterval: 15000, // Refresh every 15 seconds
     retry: 1,
+  });
+};
+
+
+// react query hook - user-dashboard
+
+export const useUserWelcome = () => {
+  return useQuery({
+    queryKey: ['user-welcome'],
+    queryFn: userDashboardService.fetchWelcome,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };

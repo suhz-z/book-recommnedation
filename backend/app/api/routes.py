@@ -10,6 +10,7 @@ import httpx
 from datetime import datetime, timedelta
 from app.config import settings
 from app.api import dashboard
+from app.api import user_dashboard
 
 router = APIRouter()
 
@@ -24,6 +25,7 @@ similar_book_list_adapter = TypeAdapter(List[SimilarBook])
 
 router.include_router(auth.router)
 router.include_router(dashboard.router, prefix="/admin")
+router.include_router(user_dashboard.router, prefix="/user")
 
 #cache
 weather_cache = {}

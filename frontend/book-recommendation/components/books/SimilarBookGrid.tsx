@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, TrendingUp } from 'lucide-react';
+import { FavoriteButton } from '../FavoriteButton';
 
 interface SimilarBooksGridProps {
   books: SimilarBook[];
@@ -44,12 +45,17 @@ export function SimilarBooksGrid({ books, onBookClick, allBooks }: SimilarBooksG
 
 function BookCard({ book, onClick }: { book: SimilarBook; onClick: () => void }) {
   return (
-    <div
-      className="group cursor-pointer"
-      onClick={onClick}
-    >
+    <div className="group cursor-pointer" onClick={onClick}>
       <Card className="hover:shadow-xl h-full pb-3 transition-shadow">
         <div className="relative aspect-2/3 bg-muted">
+          {/* Add Favorite Button */}
+          <div 
+            className="absolute top-2 right-2 z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <FavoriteButton bookId={book.id} size="sm" />
+          </div>
+          
           <Image
             src={book.cover_image_url}
             alt={book.title}
