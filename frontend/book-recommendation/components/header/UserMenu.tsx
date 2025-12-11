@@ -111,7 +111,7 @@ export function UserMenu({ user }: UserMenuProps) {
             {user.is_admin && (
               <button
                 onClick={() => { 
-                  router.push('/admin'); 
+                  router.push('/dashboard'); 
                   setIsOpen(false); 
                 }}
                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
