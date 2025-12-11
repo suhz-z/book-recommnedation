@@ -193,35 +193,97 @@ export const useAddFavorite = () => {
   
   return useMutation({
     mutationFn: (bookId: number) => favoritesService.addFavorite(bookId),
-    onSuccess: () => {
+    
+    // Optimistic update - UI updates instantly
+    onMutate: async (bookId: number) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['favorite-check', bookId] });
+      await queryClient.cancelQueries({ queryKey: ['favorites-count'] });
+      
+      // Snapshot previous values
+      const previousCheck = queryClient.getQueryData(['favorite-check', bookId]);
+      const previousCount = queryClient.getQueryData(['favorites-count']);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData(['favorite-check', bookId], { 
+        is_favorite: true, 
+        book_id: bookId 
+      });
+      
+      // Update count optimistically
+      if (previousCount) {
+        queryClient.setQueryData(['favorites-count'], (old: any) => ({
+          ...old,
+          count: (old?.count || 0) + 1
+        }));
+      }
+      
+      // Return context with previous values
+      return { previousCheck, previousCount, bookId };
+    },
+    
+    // On error, rollback
+    onError: (err, bookId, context) => {
+      if (context?.previousCheck) {
+        queryClient.setQueryData(['favorite-check', bookId], context.previousCheck);
+      }
+      if (context?.previousCount) {
+        queryClient.setQueryData(['favorites-count'], context.previousCount);
+      }
+    },
+    
+    // Always refetch after error or success
+    onSettled: (data, error, bookId) => {
+      queryClient.invalidateQueries({ queryKey: ['favorite-check', bookId] });
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
-      queryClient.invalidateQueries({ queryKey: ['favorite-check'] });
       queryClient.invalidateQueries({ queryKey: ['favorites-count'] });
     },
-    onError: (error: Error) => {
-      // Handle authentication errors
-      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-        console.error('Authentication required');
-      }
-    }
   });
 };
 
+// Optimistic mutation for removing favorites
 export const useRemoveFavorite = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: (bookId: number) => favoritesService.removeFavorite(bookId),
-    onSuccess: () => {
+    
+    onMutate: async (bookId: number) => {
+      await queryClient.cancelQueries({ queryKey: ['favorite-check', bookId] });
+      await queryClient.cancelQueries({ queryKey: ['favorites-count'] });
+      
+      const previousCheck = queryClient.getQueryData(['favorite-check', bookId]);
+      const previousCount = queryClient.getQueryData(['favorites-count']);
+      
+      queryClient.setQueryData(['favorite-check', bookId], { 
+        is_favorite: false, 
+        book_id: bookId 
+      });
+      
+      if (previousCount) {
+        queryClient.setQueryData(['favorites-count'], (old: any) => ({
+          ...old,
+          count: Math.max((old?.count || 1) - 1, 0)
+        }));
+      }
+      
+      return { previousCheck, previousCount, bookId };
+    },
+    
+    onError: (err, bookId, context) => {
+      if (context?.previousCheck) {
+        queryClient.setQueryData(['favorite-check', bookId], context.previousCheck);
+      }
+      if (context?.previousCount) {
+        queryClient.setQueryData(['favorites-count'], context.previousCount);
+      }
+    },
+    
+    onSettled: (data, error, bookId) => {
+      queryClient.invalidateQueries({ queryKey: ['favorite-check', bookId] });
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
-      queryClient.invalidateQueries({ queryKey: ['favorite-check'] });
       queryClient.invalidateQueries({ queryKey: ['favorites-count'] });
     },
-    onError: (error: Error) => {
-      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-        console.error('Authentication required');
-      }
-    }
   });
 };
 

@@ -2,7 +2,7 @@
 
 import { Heart } from 'lucide-react';
 import { useCheckFavorite, useAddFavorite, useRemoveFavorite } from '@/lib/api';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/AuthContext';
@@ -11,31 +11,47 @@ interface FavoriteButtonProps {
   bookId: number;
   size?: 'sm' | 'md' | 'lg';
   variant?: 'icon' | 'button';
+  initialIsFavorite?: boolean; // For SSR/initial render
 }
 
-export function FavoriteButton({ bookId, size = 'md', variant = 'icon' }: FavoriteButtonProps) {
+export function FavoriteButton({ 
+  bookId, 
+  size = 'md', 
+  variant = 'icon',
+  initialIsFavorite = false 
+}: FavoriteButtonProps) {
   const router = useRouter();
-  const { user } = useAuth(); // Get user from AuthContext
-  const { data, isLoading } = useCheckFavorite(user ? bookId : null); // Only check if logged in
+  const { user } = useAuth();
+  const { data } = useCheckFavorite(user ? bookId : null);
   const addFavorite = useAddFavorite();
   const removeFavorite = useRemoveFavorite();
+  
+  // Local state for instant UI feedback
   const [isAnimating, setIsAnimating] = useState(false);
+  const [optimisticFavorite, setOptimisticFavorite] = useState(initialIsFavorite);
 
-  const isFavorite = data?.is_favorite || false;
+  // Sync with server state when it arrives
+  useEffect(() => {
+    if (data !== undefined) {
+      setOptimisticFavorite(data.is_favorite);
+    }
+  }, [data]);
+
+  const isFavorite = data?.is_favorite ?? optimisticFavorite;
   const isProcessing = addFavorite.isPending || removeFavorite.isPending;
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Check if user is authenticated
     if (!user) {
-      // Redirect to login with return URL
       router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
 
+    // Immediate visual feedback
     setIsAnimating(true);
+    setOptimisticFavorite(!isFavorite);
     setTimeout(() => setIsAnimating(false), 300);
 
     try {
@@ -45,11 +61,9 @@ export function FavoriteButton({ bookId, size = 'md', variant = 'icon' }: Favori
         await addFavorite.mutateAsync(bookId);
       }
     } catch (error) {
+      // Rollback on error
+      setOptimisticFavorite(isFavorite);
       console.error('Favorite action failed:', error);
-      // If 401 Unauthorized, redirect to login
-      if (error instanceof Error && error.message.includes('401')) {
-        router.push('/login');
-      }
     }
   };
 
@@ -69,7 +83,7 @@ export function FavoriteButton({ bookId, size = 'md', variant = 'icon' }: Favori
     return (
       <Button
         onClick={handleClick}
-        disabled={isLoading || isProcessing}
+        disabled={isProcessing}
         variant={isFavorite ? 'default' : 'outline'}
         className={`${isAnimating ? 'scale-110' : 'scale-100'} transition-all`}
       >
