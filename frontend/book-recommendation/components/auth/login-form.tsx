@@ -8,7 +8,11 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/AuthContext";
 import Link from "next/link";
 
-export function LoginForm() {
+interface LoginFormProps {
+  redirectUrl?: string;
+}
+
+export function LoginForm({ redirectUrl = '/' }: LoginFormProps) {
   const { refreshUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,11 +36,11 @@ export function LoginForm() {
         });
 
         if (res.ok) {
-      
-  
           await refreshUser(); // Updates Header immediately
-          router.push('/');
-           // Refresh to update user state in layout
+          
+          // Redirect to the original page or home
+          router.push(redirectUrl);
+          router.refresh(); // Refresh to update user state in layout
         } else {
           const data = await res.json();
           setError(data.detail || "Login failed");
@@ -87,8 +91,11 @@ export function LoginForm() {
       </Button>
 
       <p className="text-sm text-center text-gray-600">
-        Dont have an account?{" "}
-        <Link href="/signup" className="text-blue-600 hover:underline">
+        Don't have an account?{" "}
+        <Link 
+          href={`/signup${redirectUrl !== '/' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
+          className="text-blue-600 hover:underline"
+        >
           Register here
         </Link>
       </p>

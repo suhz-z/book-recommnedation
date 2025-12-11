@@ -176,6 +176,7 @@ export const useCheckFavorite = (bookId: number | null) => {
     queryFn: () => favoritesService.checkFavorite(bookId!),
     enabled: !!bookId,
     staleTime: 1 * 60 * 1000,
+    retry: false
   });
 };
 
@@ -197,6 +198,12 @@ export const useAddFavorite = () => {
       queryClient.invalidateQueries({ queryKey: ['favorite-check'] });
       queryClient.invalidateQueries({ queryKey: ['favorites-count'] });
     },
+    onError: (error: Error) => {
+      // Handle authentication errors
+      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        console.error('Authentication required');
+      }
+    }
   });
 };
 
@@ -210,6 +217,11 @@ export const useRemoveFavorite = () => {
       queryClient.invalidateQueries({ queryKey: ['favorite-check'] });
       queryClient.invalidateQueries({ queryKey: ['favorites-count'] });
     },
+    onError: (error: Error) => {
+      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        console.error('Authentication required');
+      }
+    }
   });
 };
 

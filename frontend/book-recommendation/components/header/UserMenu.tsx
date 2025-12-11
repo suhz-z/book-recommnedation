@@ -2,9 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, LayoutDashboard } from 'lucide-react';
+import { LogOut, LayoutDashboard, Heart } from 'lucide-react';
 import { useAuth } from '@/hooks/AuthContext';
-
 
 interface UserMenuProps {
   user: { 
@@ -13,7 +12,6 @@ interface UserMenuProps {
     is_admin?: boolean;
   };
 }
-
 
 export function UserMenu({ user }: UserMenuProps) {
   const { logout } = useAuth();
@@ -63,7 +61,6 @@ export function UserMenu({ user }: UserMenuProps) {
     }
   };
 
-
   return (
     <div className="relative" ref={menuRef}>
       <button
@@ -96,20 +93,34 @@ export function UserMenu({ user }: UserMenuProps) {
             )}
           </div>
           
-          {/* Navigation Links - Only show if admin */}
-          {user.is_admin && (
-            <div className="py-1">
+          {/* Navigation Links */}
+          <div className="py-1">
+            {/* User Dashboard - Available to ALL users */}
+            <button
+              onClick={() => { 
+                router.push('/user_dashboard'); 
+                setIsOpen(false); 
+              }}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+            >
+              <Heart className="h-4 w-4" />
+              My Dashboard
+            </button>
+
+            {/* Admin Dashboard - Only for admins */}
+            {user.is_admin && (
               <button
-                onClick={() => { router.push('/dashboard'); setIsOpen(false); }}
-                
-                className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+                onClick={() => { 
+                  router.push('/admin'); 
+                  setIsOpen(false); 
+                }}
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Admin Dashboard
               </button>
-              
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Logout Button */}
           <div className="border-t border-neutral-100 pt-1">

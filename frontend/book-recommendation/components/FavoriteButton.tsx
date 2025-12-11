@@ -4,6 +4,8 @@ import { Heart } from 'lucide-react';
 import { useCheckFavorite, useAddFavorite, useRemoveFavorite } from '@/lib/api';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/AuthContext';
 
 interface FavoriteButtonProps {
   bookId: number;
@@ -12,7 +14,9 @@ interface FavoriteButtonProps {
 }
 
 export function FavoriteButton({ bookId, size = 'md', variant = 'icon' }: FavoriteButtonProps) {
-  const { data, isLoading } = useCheckFavorite(bookId);
+  const router = useRouter();
+  const { user } = useAuth(); // Get user from AuthContext
+  const { data, isLoading } = useCheckFavorite(user ? bookId : null); // Only check if logged in
   const addFavorite = useAddFavorite();
   const removeFavorite = useRemoveFavorite();
   const [isAnimating, setIsAnimating] = useState(false);
@@ -24,6 +28,13 @@ export function FavoriteButton({ bookId, size = 'md', variant = 'icon' }: Favori
     e.preventDefault();
     e.stopPropagation();
     
+    // Check if user is authenticated
+    if (!user) {
+      // Redirect to login with return URL
+      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 300);
 
@@ -35,6 +46,10 @@ export function FavoriteButton({ bookId, size = 'md', variant = 'icon' }: Favori
       }
     } catch (error) {
       console.error('Favorite action failed:', error);
+      // If 401 Unauthorized, redirect to login
+      if (error instanceof Error && error.message.includes('401')) {
+        router.push('/login');
+      }
     }
   };
 
@@ -63,7 +78,11 @@ export function FavoriteButton({ bookId, size = 'md', variant = 'icon' }: Favori
           fill={isFavorite ? 'currentColor' : 'none'}
           className="mr-2"
         />
-        {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+        {user ? (
+          isFavorite ? 'Remove from Favorites' : 'Add to Favorites'
+        ) : (
+          'Login to Favorite'
+        )}
       </Button>
     );
   }
@@ -71,7 +90,7 @@ export function FavoriteButton({ bookId, size = 'md', variant = 'icon' }: Favori
   return (
     <button
       onClick={handleClick}
-      disabled={isLoading || isProcessing}
+      disabled={isProcessing}
       className={`${sizeClasses[size]} rounded-full flex items-center justify-center transition-all
         ${isFavorite 
           ? 'bg-red-500 hover:bg-red-600 text-white' 
@@ -80,7 +99,10 @@ export function FavoriteButton({ bookId, size = 'md', variant = 'icon' }: Favori
         ${isAnimating ? 'scale-125' : 'scale-100'}
         ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         shadow-md hover:shadow-lg`}
-      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+      title={user 
+        ? (isFavorite ? 'Remove from favorites' : 'Add to favorites')
+        : 'Login to add to favorites'
+      }
     >
       <Heart
         size={iconSizes[size]}
