@@ -107,7 +107,7 @@ export function FavoriteButton({
       disabled={isProcessing}
       className={`${sizeClasses[size]} rounded-full flex items-center justify-center transition-all
         ${isFavorite 
-          ? 'bg-red-500 hover:bg-red-600 text-white' 
+          ? 'bg-black hover:bg-black text-white' 
           : 'bg-white hover:bg-gray-100 text-gray-600 border border-gray-300'
         }
         ${isAnimating ? 'scale-125' : 'scale-100'}
