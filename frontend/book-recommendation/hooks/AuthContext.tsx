@@ -2,6 +2,7 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface User {
   id: number;  
@@ -30,6 +31,7 @@ export function AuthProvider({
 }) {
   const [user, setUser] = useState<User | null>(initialUser || null);
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const fetchUser = async () => {
     setLoading(true);
@@ -42,26 +44,49 @@ export function AuthProvider({
       
       if (res.ok) {
         const data = await res.json();
-        console.log('Fetched user data:', data); //
-        console.log('is_admin value:', data.is_admin); //-
+        console.log('Fetched user data:', data);
+        console.log('is_admin value:', data.is_admin);
+        
+        // Check if user changed (different ID)
+        if (user && user.id !== data.id) {
+          console.log('User changed, clearing cache');
+          queryClient.clear(); // Clear cache when different user logs in
+        }
+        
         setUser(data);
       } else {
+        console.log('Auth failed, clearing user and cache');
         setUser(null);
+        queryClient.clear(); // Clear cache on auth failure
       }
     } catch (err) {
       console.error("Failed to fetch user:", err);
       setUser(null);
+      queryClient.clear(); // Clear cache on error
     } finally {
       setLoading(false);
     }
   };
 
   const logout = () => {
+    console.log('Logging out, clearing cache');
     setUser(null);
+    
+    // CRITICAL: Clear ALL React Query cache on logout
+    queryClient.clear();
+    
+    // Alternative: Clear specific queries only
+    // queryClient.removeQueries({ queryKey: ['favorites'] });
+    // queryClient.removeQueries({ queryKey: ['favorite-check'] });
+    // queryClient.removeQueries({ queryKey: ['favorites-count'] });
+    // queryClient.removeQueries({ queryKey: ['user-welcome'] });
   };
 
   useEffect(() => {
-    fetchUser();
+    // Only fetch if no initial user provided
+    if (!initialUser) {
+      fetchUser();
+    }
   }, []);
 
   return (

@@ -208,7 +208,7 @@ function EmptyFavorites() {
       </p>
       <Link
         href="/"
-        className="inline-flex items-center gap-2 bg-gradient-to-r  text-white px-8 py-3 rounded-lg  transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        className="inline-flex items-center gap-2 bg-gradient-to-r bg-neutral-700 hover:bg-neutral-900 text-white px-8 py-3 rounded-lg  transition-all"
       >
         <BookOpen className="h-5 w-5" />
         Browse Books
